@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/_build/default/lib/cowboy" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/_build/default/lib/cowlib" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/_build/default/lib/emqttc" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/_build/default/lib/gpb" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/_build/default/lib/mysql" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/_build/default/lib/ranch" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/_build/default/lib/redis" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/_build/default/lib/websocket_client" vcs="Git" />
+  </component>
+</project>

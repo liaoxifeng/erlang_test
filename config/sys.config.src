@@ -1,0 +1,21 @@
+[
+    {erlang_test, [
+        {port, ${LISTEN_PORT}}
+    ]},
+
+    {redis, [
+        {host,     "${REDIS_HOST}"},
+        {port,      ${REDIS_PORT}},
+        {db,        ${REDIS_DB}},
+        {password, "${REDIS_PASSWORD}"},
+        {redis,    "${REDIS_TOPIC}"}
+    ]},
+
+    {mysql, [
+            {host,     "${MYSQL_HOST}"},
+            {account,  "${MYSQL_ACCOUNT}"},
+            {password, "${MYSQL_PASSWORD}"},
+            {db,       "${MYSQL_DB}"},
+            {topic,    "${MYSQL_TOPIC}"}
+    ]}
+].
