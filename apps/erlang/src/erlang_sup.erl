@@ -35,10 +35,11 @@ start_link() ->
 init([]) ->
     {ok, { {one_for_all, 0, 1},
         [
-            ?CHILD(block_server_sup, supervisor),
-            ?CHILD(block_client_sup, supervisor),
-            ?CHILD(test_mgr, worker),
-            ?CHILD(statem_test, worker)
+%%            ?CHILD(block_server_sup, supervisor),
+%%            ?CHILD(block_client_sup, supervisor),
+%%            ?CHILD(statem_test, worker),
+            ?CHILD(test_mgr, worker)
+
 
         ]} }.
 

@@ -72,7 +72,7 @@ handle_event(cast, EventContent, StateName, State) ->
 
     {next_state, StateName+1, State, [{state_timeout, 10000, lock}]};
 
-handle_event({call,From}, EventContent, StateName, State) ->
+handle_event({call, _From}, EventContent, StateName, State) ->
     io:format("EventContent ~p\n", [EventContent]),
     io:format("StateName ~p\n", [StateName]),
     io:format("State ~p\n", [State]),

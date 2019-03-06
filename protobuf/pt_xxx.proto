@@ -1,0 +1,22 @@
+// 人物
+message Person {
+    required string name = 1;
+    required int32 id = 2;
+    repeated Struct_Num nums = 3;
+    optional string email = 4;
+}
+
+// 结构体
+message Struct_Num {
+    required uint32 num = 1;
+
+}
+
+// 心跳
+message C2S_Heartbeat {
+
+}
+
+message S2C_Heartbeat {
+
+}

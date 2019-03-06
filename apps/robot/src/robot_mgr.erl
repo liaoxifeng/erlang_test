@@ -9,6 +9,9 @@
 -module(robot_mgr).
 -author("feng.liao").
 
+-include("common.hrl").
+-include("pt_xxx.hrl").
+
 -behaviour(gen_server).
 
 -export([
@@ -25,7 +28,6 @@
     code_change/3]).
 
 -define(SERVER, ?MODULE).
--define(ROBOT_COUNT, 1000).
 
 -define(ets_robot, ets_robot).
 -record(ets_robot, {
@@ -65,4 +67,11 @@ code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
 test() ->
-    robot:start_link([1]).
+    {ok, Pid} = robot:start_link(1),
+    Person = #'Person'{
+        name= <<"abcdef"/utf8>>,
+        id=345,
+        nums = [#'Struct_Num'{num = I} || I <- lists:seq(1, 10)],
+        email= <<"a@example.com"/utf8>>},
+    Pid ! {binary, pt:encode_msg(pt_xxx, Person)},
+    ok.

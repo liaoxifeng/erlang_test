@@ -67,46 +67,31 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%===================================================================
 
+%% redis
 redis_test() ->
-    {ok, Client} = eredis:start_link("127.0.0.1", 6379, 0, "redis"),
-    {ok, SetResult} = eredis:q(Client, ["SET", foo, bar]),
-    io:format("SetResult ~p\n", [SetResult]),
-    {ok, GetResult} = eredis:q(Client, ["GET", "foo"]),
-    io:format("GetResult ~p\n", [GetResult]),
-    eredis:q(Client, ["DEL", foo]),
-    ?assertEqual({ok, undefined}, eredis:q(Client, ["GET", foo])),
-    ?assertEqual({ok, <<"OK">>}, eredis:q(Client, ["SET", foo, bar])),
-    ?assertEqual({ok, <<"bar">>}, eredis:q(Client, ["GET", foo])),
+    {ok, Host} = application:get_env(redis, host),
+    {ok, Port} = application:get_env(redis, port),
+    {ok, Db} = application:get_env(redis, db),
+    {ok, Password} = application:get_env(redis, password),
+    {ok, Topic} = application:get_env(redis, topic),
+
+    {ok, Client} = eredis:start_link(Host, Port, Db, Password),
+
+    {ok, SetResult} = eredis:q(Client, ["SET", Topic, bar]),
+    ?PRINT("SetResult ~p", [SetResult]),
+    {ok, GetResult} = eredis:q(Client, ["GET", Topic]),
+    ?PRINT("GetResult ~p", [GetResult]),
+    eredis:q(Client, ["DEL", Topic]),
+
+    ?assertEqual({ok, undefined}, eredis:q(Client, ["GET", Topic])),
+    ?assertEqual({ok, <<"OK">>}, eredis:q(Client, ["SET", Topic, bar])),
+    ?assertEqual({ok, <<"bar">>}, eredis:q(Client, ["GET", Topic])),
     ?assertMatch({ok, _}, eredis:q(Client, ["LPUSH", "k1", "b"])),
     ?assertMatch({ok, _}, eredis:q(Client, ["LPUSH", "k1", "a"])),
     ?assertMatch({ok, _}, eredis:q(Client, ["LPUSH", "k2", "c"])),
     eredis:stop(Client).
 
-
-mysql_test() ->
-    {ok, _} = mysql:start_link(p1, "localhost", "root", "123456", "test"),
-    {data, MySqlRes}  = mysql:fetch(p1, <<"select * from test">>),
-    io:format("QueryResult ~p", [MySqlRes]),
-
-    %% 获取字段名称信息
-    FieldInfo = mysql:get_result_field_info(MySqlRes),
-
-    %% 获取字段值
-    AllRows   = mysql:get_result_rows(MySqlRes),
-
-    mysql:fetch(p1, <<"DELETE FROM test where userid = 'feng'">>),
-
-    mysql:fetch(p1, <<"INSERT INTO test(token, timeout) VALUES "
-    "(6, 3)">>),
-
-
-
-    {ok, _} = mysql:start_link(p2, "localhost", "root", "123456", "students_db"),
-
-    Name = "'feng1'",
-    Password = "aes_encrypt('password', 'salt')",
-    mysql:fetch(p2, list_to_binary("INSERT INTO students(name, password) VALUES (" ++ Name ++ "," ++ Password ++ ")")).
-
+%% 订阅 topic foo
 sub_test() ->
     {ok, Sub} = eredis_sub:start_link([{password, "redis"}]),
     Receiver = spawn_link(fun () ->
@@ -116,6 +101,7 @@ sub_test() ->
                           end),
     {Sub, Receiver}.
 
+%% 订阅 topic foo*
 psub_test() ->
     {ok, Sub} = eredis_sub:start_link([{password, "redis"}]),
     Receiver = spawn_link(fun () ->
@@ -125,6 +111,7 @@ psub_test() ->
                           end),
     {Sub, Receiver}.
 
+%% 上传数据到redis
 publish() ->
     {ok, P} = eredis:start_link("127.0.0.1", 6379, 0, "redis"),
     eredis:q(P, ["PUBLISH", "foo", "bar"]),
@@ -135,14 +122,17 @@ ppublish() ->
     eredis:q(P, ["PUBLISH", "foo4", "bar44"]),
     eredis_client:stop(P).
 
+%% 订阅者结束数据
 receiver(Sub) ->
     receive
         Msg ->
-            io:format("received ~p~n", [Msg]),
+            ?PRINT("received ~p", [Msg]),
             eredis_sub:ack_message(Sub),
             receiver(Sub)
     end.
 
+
+%% 阻塞tcp socket
 tcp_test() ->
     Args = #{
         id       => ?undefined,
@@ -153,3 +143,39 @@ tcp_test() ->
         type     => worker
     },
     ?assertMatch({ok, _}, block_client_sup:start_child(Args)).
+
+
+%% mysql
+mysql_test() ->
+    #{
+        host := Host, account := Account,
+        password := Password, db := Db,
+        topic := Topic} = maps:from_list(application:get_all_env(mysql)),
+
+    {ok, _} = mysql:start_link(Topic, Host, Account, Password, Db),
+
+    {data, MySqlRes}  = mysql:fetch(Topic, <<"select * from test">>),
+    ?PRINT("QueryResult ~p", [MySqlRes]),
+
+    %% 获取字段名称信息
+    FieldInfo = mysql:get_result_field_info(MySqlRes),
+    ?PRINT("FieldInfo ~p", [FieldInfo]),
+
+    %% 获取字段值
+    AllRows = mysql:get_result_rows(MySqlRes),
+    ?PRINT("AllRows ~p", [AllRows]),
+
+    mysql:fetch(Topic, <<"DELETE FROM test where userid = 'feng'">>),
+
+    mysql:fetch(Topic, <<"INSERT INTO test(token, timeout) VALUES "
+    "(6, 3)">>),
+    ok.
+
+%%
+%%    %% 加密密码
+%%    {ok, _} = mysql:start_link(p2, "localhost", "root", "123456", "students_db"),
+%%
+%%    Name = "'feng1'",
+%%    Password1 = "aes_encrypt('password', 'salt')",
+%%    mysql:fetch(p2, list_to_binary("INSERT INTO students(name, password) VALUES (" ++ Name ++ "," ++ Password1 ++ ")")).
+
