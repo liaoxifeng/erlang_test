@@ -10,7 +10,7 @@
 -author("feng.liao").
 
 -include("common.hrl").
--include("pt_xxx.hrl").
+-include("pt_common.hrl").
 
 -behaviour(gen_server).
 
@@ -73,5 +73,5 @@ test() ->
         id=345,
         nums = [#'Struct_Num'{num = I} || I <- lists:seq(1, 10)],
         email= <<"a@example.com"/utf8>>},
-    Pid ! {binary, pt:encode_msg(pt_xxx, Person)},
+    Pid ! {binary, pt:encode_msg(pt_common, Person)},
     ok.

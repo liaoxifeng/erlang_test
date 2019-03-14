@@ -30,8 +30,6 @@ do_upgrade() ->
                 X
         end
           end,
-    mnesia:delete({person, feng}),
-    mnesia:dirty_write({person, feng}),
-    mnesia:dirty_read({person, feng}),
+
     NewAttr = [name, age, sex, money,id],
     mnesia:transform_table(person, Fun, NewAttr, person).

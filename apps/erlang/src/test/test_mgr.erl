@@ -179,3 +179,7 @@ mysql_test() ->
 %%    Password1 = "aes_encrypt('password', 'salt')",
 %%    mysql:fetch(p2, list_to_binary("INSERT INTO students(name, password) VALUES (" ++ Name ++ "," ++ Password1 ++ ")")).
 
+fs_test() ->
+    fs:start_link(fs_watcher),
+    fs:subscribe(fs_watcher),
+    fs:known_events(fs_watcher).

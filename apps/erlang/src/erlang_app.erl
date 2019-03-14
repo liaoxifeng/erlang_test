@@ -4,7 +4,7 @@
 %%%-------------------------------------------------------------------
 
 -module(erlang_app).
-
+-include("common.hrl").
 -behaviour(application).
 
 %% Application callbacks
@@ -25,6 +25,7 @@ start(_StartType, _StartArgs) ->
         ]}
     ]),
     {ok, Port} = application:get_env(erlang_test, port),
+    ?INF("cowboy listen [~p]",[Port]),
     {ok, _} = cowboy:start_clear(http, [{port, Port}], #{
         env => #{dispatch => Dispatch}
     }),

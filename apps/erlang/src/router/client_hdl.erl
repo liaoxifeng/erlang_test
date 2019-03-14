@@ -10,7 +10,7 @@
 -module(client_hdl).
 
 -include("common.hrl").
--include("pt_xxx.hrl").
+-include("pt_common.hrl").
 
 -author("feng.liao").
 
@@ -20,7 +20,7 @@
 do(MsgPkg) ->
     case MsgPkg of
         #'C2S_Heartbeat'{} ->
-            pt:encode_msg(pt_xxx, #'S2C_Heartbeat'{});
+            pt:encode_msg(pt_common, #'S2C_Heartbeat'{});
         _ ->
-            pt:encode_msg(pt_xxx, MsgPkg)
+            pt:encode_msg(pt_common, MsgPkg)
     end.

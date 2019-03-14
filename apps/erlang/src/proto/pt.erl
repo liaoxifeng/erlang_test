@@ -9,7 +9,7 @@
 
 -module(pt).
 
--include("pt_xxx.hrl").
+-include("pt_common.hrl").
 -include("common.hrl").
 
 -author("feng.liao").

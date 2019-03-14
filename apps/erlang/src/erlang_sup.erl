@@ -33,13 +33,16 @@ start_link() ->
 %% Before OTP 18 tuples must be used to specify a child. e.g.
 %% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
 init([]) ->
+    code:ensure_loaded(cfg),
     {ok, { {one_for_all, 0, 1},
         [
-%%            ?CHILD(block_server_sup, supervisor),
-%%            ?CHILD(block_client_sup, supervisor),
-%%            ?CHILD(statem_test, worker),
-            ?CHILD(test_mgr, worker)
+            ?CHILD(erlang_init, worker),
 
+            %% for test
+            %% ?CHILD(block_server_sup, supervisor),
+            %% ?CHILD(block_client_sup, supervisor),
+            %% ?CHILD(statem_test, worker),
+            ?CHILD(test_mgr, worker)
 
         ]} }.
 

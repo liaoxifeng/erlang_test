@@ -10,7 +10,7 @@
 -author("feng.liao").
 
 -include("common.hrl").
--include("pt_xxx.hrl").
+-include("pt_common.hrl").
 
 -behaviour(websocket_client_handler).
 
@@ -28,7 +28,7 @@ start_link(Id) ->
 
 init([Id], _ConnState) ->
     erlang:register(get_reg_name(Id), self()),
-    erlang:send_after(25000, self(),{binary, heart, pt:encode_msg(pt_xxx, #'C2S_Heartbeat'{})}),
+    erlang:send_after(25000, self(),{binary, heart, pt:encode_msg(pt_common, #'C2S_Heartbeat'{})}),
     {ok, #{id => Id}}.
 
 websocket_handle({text, Msg}, _ConnState, State) ->

@@ -19,6 +19,9 @@ export REDIS_DB=0
 export REDIS_PASSWORD=redis
 export REDIS_TOPIC=foo
 
+# mnesia 存储路径
+export DBPATH=$(printf 'db/Mnesia.%s/' ${NODE_NAME})
+
 live(){
     SYS_CONFIG="config/sys.config"
     cp "config/sys.config.src" "$SYS_CONFIG"
@@ -31,7 +34,7 @@ live(){
     ERL_FLAGS=" -args_file $VM_ARGS" rebar3 shell \
         --config "$SYS_CONFIG" \
         --name ${NODE_NAME} --setcookie ${SETCOOKIE} \
-        --apps ssl,ranch,cowlib,mysql,crypto,cowboy,erlang,robot,mnesia
+        --apps ssl,ranch,cowlib,mysql,crypto,cowboy,compiler,syntax_tools,sync,fs,erlang,robot,mnesia
 }
 
 # Replace environment variables
