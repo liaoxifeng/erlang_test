@@ -1,22 +1,32 @@
 [
     {erlang_test, [
-        {port, ${LISTEN_PORT}}
-    ]},
+        {port, ${LISTEN_PORT}},
+        {c2s_topic, <<"${C2S_TOPIC}">>},
+        {s2c_topic, <<"${S2C_TOPIC}">>},
 
-    {redis, [
-        {host,     "${REDIS_HOST}"},
-        {port,      ${REDIS_PORT}},
-        {db,        ${REDIS_DB}},
-        {password, "${REDIS_PASSWORD}"},
-        {topic,    "${REDIS_TOPIC}"}
-    ]},
+        {redis, [
+                {host,     "${REDIS_HOST}"},
+                {port,      ${REDIS_PORT}},
+                {db,        ${REDIS_DB}},
+                {password, "${REDIS_PASSWORD}"},
+                {topic,    "${REDIS_TOPIC}"}
+            ]},
 
-    {mysql, [
-        {host,     "${MYSQL_HOST}"},
-        {account,  "${MYSQL_ACCOUNT}"},
-        {password, "${MYSQL_PASSWORD}"},
-        {db,       "${MYSQL_DB}"},
-        {topic,    "${MYSQL_TOPIC}"}
+        {mysql, [
+                {host,     "${MYSQL_HOST}"},
+                {account,  "${MYSQL_ACCOUNT}"},
+                {password, "${MYSQL_PASSWORD}"},
+                {db,       "${MYSQL_DB}"},
+                {topic,    "${MYSQL_TOPIC}"}
+            ]},
+
+        {emqttc, [
+                {host, "${MQTT_HOST}"},
+                {port, ${MQTT_PORT}},
+                {reconnect, {1,5}},
+                {client_id, <<"erlang_${SERVER_ID}">>},
+                {logger, {console, ${MQTT_LOG_LEVEL}}}
+            ]}
     ]},
 
     {sync, [
@@ -32,10 +42,31 @@
     {lager, [
         {log_root, "log/"},
         {handlers, [
-            {lager_console_backend, [{level, 'info'}]},
-            {lager_file_backend, [{file, "error.log"}, {level, 'error'}]},
-            {lager_file_backend, [{file, "console.log"}, {level, '=info'}]},
-            {lager_file_backend, [{file, "warning.log"}, {level, '=warning'}]}
+              %% 控制台输出
+              {lager_console_backend, [
+                    {level, 'info'},
+                            {formatter_config,
+                                [time,"|",sev,"|", {module,"none"},":",{line,"0"}, "|",pid,"|",message,"\n"]}]},
+
+                        %% info及以下级别日志
+                        {lager_file_backend, [
+                            {file, "info.log"},
+                            {level, '=info'}]},
+
+                        %% 警告级别日志
+                        {lager_file_backend, [
+                            {file, "warning.log"},
+                            {level, '=warning'},
+                            %% 单个文件最大200M，每天00:00滚动，最多n个文件
+                            {size, 209715200}, {date, "$D0"}, {count, 10}]},
+
+                        %% 错误级别以上日志
+                        {lager_file_backend, [
+                            {file, "error.log"},
+                            {level, 'error'},
+                            %% 单个文件最大200M，每天00:00滚动，最多n个文件
+                            {size, 209715200}, {date, "$D0"}, {count, 10}]}
+
             ]},
 
         {colored, true},

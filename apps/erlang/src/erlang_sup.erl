@@ -16,7 +16,7 @@
 -define(SERVER, ?MODULE).
 %% Helper macro for declaring children of supervisor
 -define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
-
+-define(CHILD(I, Type, Args), {I, {I, start_link, [Args]}, permanent, 5000, Type, [I]}).
 %%====================================================================
 %% API functions
 %%====================================================================
@@ -33,16 +33,20 @@ start_link() ->
 %% Before OTP 18 tuples must be used to specify a child. e.g.
 %% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
 init([]) ->
-    code:ensure_loaded(cfg),
+    {ok, MqttConfig} = application:get_env(erlang_test, emqttc),
     {ok, { {one_for_all, 0, 1},
         [
             ?CHILD(erlang_init, worker),
-
+            ?CHILD(mysql_srv, worker),
+            ?CHILD(mqtt_publisher, worker, [MqttConfig]),
+            ?CHILD(db_srv, worker, [MqttConfig]),
+            ?CHILD(mqtt_srv, worker, MqttConfig)
+%%
             %% for test
             %% ?CHILD(block_server_sup, supervisor),
             %% ?CHILD(block_client_sup, supervisor),
             %% ?CHILD(statem_test, worker),
-            ?CHILD(test_mgr, worker)
+%%            ?CHILD(test_mgr, worker)
 
         ]} }.
 

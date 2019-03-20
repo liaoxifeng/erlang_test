@@ -15,9 +15,9 @@
 -author("feng.liao").
 
 %% API
--export([do/1]).
+-export([dispatch/2]).
 
-do(MsgPkg) ->
+dispatch(MsgPkg, State) ->
     case MsgPkg of
         #'C2S_Heartbeat'{} ->
             pt:encode_msg(pt_common, #'S2C_Heartbeat'{});

@@ -4,18 +4,16 @@
 %%% @doc
 %%%
 %%% @end
-%%% Created : 11. 三月 2019 下午4:41
+%%% Created : 16. 三月 2019 下午1:44
 %%%-------------------------------------------------------------------
 
--module(erlang_init).
+-module(mqtt_srv).
 -author("feng.liao").
-
 -include("common.hrl").
-
 -behaviour(gen_server).
 
 %% API
--export([start_link/0]).
+-export([start_link/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -24,19 +22,18 @@
 %%% API
 %%%===================================================================
 
-start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+start_link(Args) ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [Args], []).
 
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
 
-init([]) ->
-    code:ensure_loaded(cfg),
-    code:ensure_loaded(mqtt_hdl),
-    mnesia_mylib:init(),
-    cfg_loader:start(),
-    {ok, #{}}.
+init([Config]) ->
+    {ok, Client} = emqttc:start_link(Config),
+    {ok, Topic} = application:get_env(erlang_test, s2c_topic),
+    emqttc:subscribe(Client, Topic, 2),
+    {ok, #{topic => Topic, client => Client}}.
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
@@ -44,7 +41,13 @@ handle_call(_Request, _From, State) ->
 handle_cast(_Request, State) ->
     {noreply, State}.
 
-handle_info(_Info, State) ->
+
+handle_info({publish, <<"s2c_foo">>, Binary}, State) ->
+    ?INF("receive ~p", [Binary]),
+    {noreply, State};
+
+handle_info(Info, State) ->
+    ?INF("~p", [Info]),
     {noreply, State}.
 
 terminate(_Reason, _State) ->

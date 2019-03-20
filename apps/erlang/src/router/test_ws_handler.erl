@@ -10,6 +10,7 @@
 -module(test_ws_handler).
 
 -include("common.hrl").
+-include("pt_common.hrl").
 
 -author("feng.liao").
 
@@ -19,8 +20,9 @@
 -export([websocket_info/2]).
 
 init(Req, _Opts) ->
-    ?PRINT("connet success"),
-    State = #{},
+    Ip = http:get_real_ip(Req),
+    ?INF("connet success ~p", [Ip]),
+    State = #{ip => Ip},
     {cowboy_websocket, Req, State}.
 
 websocket_init(State) ->
@@ -29,11 +31,19 @@ websocket_init(State) ->
 websocket_handle({text, Msg}, State) ->
     {reply, {text, << "That's what she said! ", Msg/binary >>}, State};
 
-websocket_handle({binary, Msg}, State) ->
-    {MsgPkg, _} = pt:decode_msg(Msg),
-    ?PRINT("server received: ~p", [element(1, MsgPkg)]),
-    MsgBin = client_hdl:do(MsgPkg),
-    {reply, {binary, MsgBin}, State};
+websocket_handle({binary, MsgBin}, State) ->
+    MsgBin1 =
+        case pt:decode_msg(MsgBin) of
+            {#'C2S_Heartbeat'{}, _} ->
+                ignore;
+
+            {Msg, _} ->
+                ?INF("server received: ~p", [Msg]),
+                client_hdl:dispatch(Msg, State);
+            _ ->
+                <<>>
+        end,
+    {reply, {binary, MsgBin1}, State};
 
 websocket_handle(_Data, State) ->
     {ok, State}.
