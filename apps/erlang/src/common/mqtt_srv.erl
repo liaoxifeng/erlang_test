@@ -41,13 +41,16 @@ handle_call(_Request, _From, State) ->
 handle_cast(_Request, State) ->
     {noreply, State}.
 
-
 handle_info({publish, <<"s2c_foo">>, Binary}, State) ->
     ?INF("receive ~p", [Binary]),
     {noreply, State};
 
+handle_info({mqttc, _Pid, connected}, State) ->
+    ?INF("mqtt_srv connected"),
+    {noreply, State};
+
 handle_info(Info, State) ->
-    ?INF("~p", [Info]),
+    ?ERR("~p", [Info]),
     {noreply, State}.
 
 terminate(_Reason, _State) ->

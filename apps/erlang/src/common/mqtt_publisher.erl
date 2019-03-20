@@ -29,8 +29,9 @@ start_link(Args) ->
 %%% gen_server callbacks
 %%%===================================================================
 
-init([Config]) ->
-    {ok, Client} = emqttc:start_link(emqtt_publisher, Config),
+init([Config0]) ->
+    Config = lists:keyreplace(client_id, 1, Config0, {client_id, <<"publisher">>}),
+    {ok, Client} = emqttc:start_link(publisher, Config),
     {ok, #{client => Client}}.
 
 handle_call(_Request, _From, State) ->
@@ -38,9 +39,17 @@ handle_call(_Request, _From, State) ->
 
 handle_cast({publish, Topic, CmdBinary}, #{client := Client} = State) ->
     emqttc:publish(Client, Topic, CmdBinary),
+    {noreply, State};
+
+handle_cast(_Request, State) ->
     {noreply, State}.
 
-handle_info(_Info, State) ->
+handle_info({mqttc, _Pid, connected}, State) ->
+    ?INF("mqtt publisher connected"),
+    {noreply, State};
+
+handle_info(Info, State) ->
+    ?ERR("~p", [Info]),
     {noreply, State}.
 
 terminate(_Reason, _State) ->

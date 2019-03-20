@@ -34,19 +34,19 @@ start_link() ->
 %% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
 init([]) ->
     {ok, MqttConfig} = application:get_env(erlang_test, emqttc),
-    {ok, { {one_for_all, 0, 1},
+    {ok, { {one_for_all, 10, 10},
         [
             ?CHILD(erlang_init, worker),
             ?CHILD(mysql_srv, worker),
-            ?CHILD(mqtt_publisher, worker, [MqttConfig]),
-            ?CHILD(db_srv, worker, [MqttConfig]),
+            ?CHILD(mqtt_publisher, worker, MqttConfig),
+            ?CHILD(db_srv, worker, MqttConfig),
             ?CHILD(mqtt_srv, worker, MqttConfig)
 %%
             %% for test
             %% ?CHILD(block_server_sup, supervisor),
             %% ?CHILD(block_client_sup, supervisor),
             %% ?CHILD(statem_test, worker),
-%%            ?CHILD(test_mgr, worker)
+%%           ?CHILD(test_mgr, worker)
 
         ]} }.
 

@@ -9,6 +9,9 @@
 -ifndef(__log_hrl__).
 -define(__log_hrl__, true).
 
+-define(DBG(Fmt), lager:debug([], Fmt, [])).
+-define(DBG(Fmt, Args), lager:debug([], Fmt, Args)).
+
 -define(INF(Fmt), lager:info([], Fmt, [])).
 -define(INF(Fmt, Args), lager:info([], Fmt, Args)).
 

@@ -30,8 +30,8 @@ start_link(Args) ->
 %%%===================================================================
 
 init([Config0]) ->
-    Config = lists:keyreplace(client_id, 1, Config0, {client_id, <<"db_operator">>}),
-    {ok, Client} = emqttc:start_link(db_operator, Config),
+    Config = lists:keyreplace(client_id, 1, Config0, {client_id, <<"operator">>}),
+    {ok, Client} = emqttc:start_link(operator, Config),
     {ok, C2STopic} = application:get_env(erlang_test, c2s_topic),
     emqttc:subscribe(Client, C2STopic, 2),
     {ok, #{client => Client}}.
@@ -46,8 +46,12 @@ handle_info({publish, <<"c2s_foo">>, Binary}, State) ->
     mqtt_hdl:publish(<<"s2c_foo">>, Binary),
     {noreply, State};
 
+handle_info({mqttc, _Pid, connected}, State) ->
+    ?INF("mqtt operator connected"),
+    {noreply, State};
+
 handle_info(Info, State) ->
-    ?INF("~p", [Info]),
+    ?ERR("~p", [Info]),
     {noreply, State}.
 
 terminate(_Reason, _State) ->
