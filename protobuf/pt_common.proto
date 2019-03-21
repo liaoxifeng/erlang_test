@@ -1,3 +1,4 @@
+import "pt_err.proto";
 // 人物
 message Person {
     required string name = 1;
@@ -19,4 +20,39 @@ message C2S_Heartbeat {
 
 message S2C_Heartbeat {
 
+}
+
+// 注册
+message C2S_Register {
+    required string use_name = 1;
+    required string password = 2;
+    required string phone_number = 3;
+
+}
+
+message S2C_Register {
+    required uint32 code = 1;
+}
+
+// 登录
+message C2S_Login {
+    required string use_name = 1;
+    required string password = 2;
+}
+
+message S2C_Login {
+    required string use_name = 1;
+    required uint64 money = 2;
+}
+
+// 服务端返回提示的提示方式
+enum EnumS2CErrShowType {
+    E_S2CErrShowType_PopUp = 0;    // 弹窗
+}
+
+// 服务端返回提示信息
+message S2C_Err {
+    required EnumS2CErrCode code = 1;       // 错误码
+    required EnumS2CErrShowType type = 2;   // 提示方式
+    required string msg = 3;                // 消息
 }

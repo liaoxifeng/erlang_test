@@ -8,15 +8,33 @@
 %%%-------------------------------------------------------------------
 
 -module(mqtt_hdl).
-
+-include("common.hrl").
 -author("feng.liao").
 
 %% API
--export([publish/2, publish/1]).
+-export([publish/2, publish/1, call/1, call/2]).
+
+call(CmdContent) ->
+    call(CmdContent, 5000).
+
+call(CmdContent, 5000) ->
+    {ok, Topic} = application:get_env(erlang_test, c2s_topic),
+    Tag = util:unixtime_microsecond(),
+    ets:insert(?ets_mqtt_call, {Tag, self()}),
+    CmdBinary = jsx:encode([{tag, Tag}|CmdContent]),
+    publish(Topic, CmdBinary),
+    receive
+        {async_msg, Reply} ->
+            ets:delete(?ets_mqtt_call, Tag),
+            {ok, Reply}
+
+    after 5000 ->
+        {error, timeout}
+    end.
 
 publish(CmdBinary) ->
     {ok, Topic} = application:get_env(erlang_test, c2s_topic),
-    gen_server:cast(mqtt_publisher, {publish, Topic, CmdBinary}).
+    emqttc:publish(whereis(publisher), Topic, CmdBinary, [{qos, 2}]).
 
 publish(Topic, CmdBinary) ->
-    gen_server:cast(mqtt_publisher, {publish, Topic, CmdBinary}).
+    emqttc:publish(whereis(publisher), Topic, CmdBinary, [{qos, 2}]).

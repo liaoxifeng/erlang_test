@@ -32,25 +32,17 @@ websocket_handle({text, Msg}, State) ->
     {reply, {text, << "That's what she said! ", Msg/binary >>}, State};
 
 websocket_handle({binary, MsgBin}, State) ->
-    MsgBin1 =
-        case pt:decode_msg(MsgBin) of
-            {#'C2S_Heartbeat'{}, _} ->
-                ignore;
-
-            {Msg, _} ->
-                ?INF("server received: ~p", [Msg]),
-                client_hdl:dispatch(Msg, State);
-            _ ->
-                <<>>
-        end,
-    {reply, {binary, MsgBin1}, State};
+    {Msg, _} = pt:decode_msg(MsgBin),
+    case Msg of
+        #'C2S_Heartbeat'{} ->
+            ignore;
+        _ ->
+            ?INF("server received: ~p", [Msg])
+    end,
+    client_hdl:dispatch(Msg, State);
 
 websocket_handle(_Data, State) ->
     {ok, State}.
-
-websocket_info({timeout, _Ref, Msg}, State) ->
-    erlang:start_timer(1000, self(), <<"How' you doin'?">>),
-    {reply, {text, Msg}, State};
 
 websocket_info({binary, Msg}, State) ->
     {MsgBin, _} = pt:decode_msg(Msg),

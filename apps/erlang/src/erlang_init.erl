@@ -32,8 +32,6 @@ start_link() ->
 %%%===================================================================
 
 init([]) ->
-    code:ensure_loaded(cfg),
-    code:ensure_loaded(mqtt_hdl),
     mnesia_mylib:init(),
     cfg_loader:start(),
     {ok, #{}}.

@@ -21,6 +21,13 @@
 -define(ERR(Fmt), lager:error([], Fmt, [])).
 -define(ERR(Fmt, Args), lager:error([], Fmt, Args)).
 
+%% ClassReason :: {atom(), term()}
+-define(ERR_ST(Fmt, Args, ClassReason),
+    lager:error(
+        [],
+        Fmt ++ "~nStacktrace:~s",
+        Args ++ [lager:pr_stacktrace(erlang:get_stacktrace(), ClassReason)])).
+
 -define(PRINT(Fmt), io:format("~w:~w| " ++ Fmt ++ "~n", [?MODULE, ?LINE])).
 -define(PRINT(Fmt, Args), io:format("~w:~w| " ++ Fmt ++ "~n", [?MODULE, ?LINE|Args])).
 

@@ -2,7 +2,7 @@
 %%% @author feng.liao
 %%% @copyright (C) 2019, <COMPANY>
 %%% @doc
-%%%
+%%% 与数据库交互的进程，可以另开一个项目
 %%% @end
 %%% Created : 20. 三月 2019 下午2:01
 %%%-------------------------------------------------------------------
@@ -43,7 +43,10 @@ handle_cast(_Request, State) ->
     {noreply, State}.
 
 handle_info({publish, <<"c2s_foo">>, Binary}, State) ->
-    mqtt_hdl:publish(<<"s2c_foo">>, Binary),
+
+    Binary1 = maps:from_list(jsx:decode(Binary)),
+    db_lib:db_hdl(Binary1, <<"s2c_foo">>),
+
     {noreply, State};
 
 handle_info({mqttc, _Pid, connected}, State) ->

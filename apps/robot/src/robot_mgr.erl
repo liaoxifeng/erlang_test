@@ -14,18 +14,9 @@
 
 -behaviour(gen_server).
 
--export([
-    start_link/0,
-    get_count/0,
-    test/0
-    ]).
+-export([start_link/0, get_count/0, start/0, send/0]).
 
--export([init/1,
-    handle_call/3,
-    handle_cast/2,
-    handle_info/2,
-    terminate/2,
-    code_change/3]).
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 -define(SERVER, ?MODULE).
 
@@ -52,7 +43,6 @@ handle_call(_Request, _From, State) ->
 handle_cast(_Request, State) ->
     {noreply, State}.
 
-
 handle_info({add, Id, Pid}, State) ->
     ets:insert(?ets_robot, #ets_robot{id = Id, pid = Pid}),
     {noreply, State};
@@ -66,12 +56,14 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
-test() ->
+start() ->
     {ok, Pid} = robot:start_link(1),
-    Person = #'Person'{
-        name= <<"abcdef"/utf8>>,
-        id=345,
-        nums = [#'Struct_Num'{num = I} || I <- lists:seq(1, 10)],
-        email= <<"a@example.com"/utf8>>},
-    Pid ! {binary, pt:encode_msg(pt_common, Person)},
-    ok.
+    Register = #'C2S_Register'{use_name = <<"feng">>, password = <<"passord">>, phone_number = <<"15172407849">>},
+    Pid ! {binary, pt:encode_msg(pt_common, Register)}.
+
+%%
+send() ->
+    {ok, Pid} = robot:start_link(1),
+    Msg = #'C2S_Login'{use_name = <<"feng">>, password = <<"passord">>},
+    Pid ! {binary, pt:encode_msg(pt_common, Msg)}.
+

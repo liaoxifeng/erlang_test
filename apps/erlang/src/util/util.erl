@@ -12,11 +12,15 @@
 -author("feng.liao").
 
 %% API
--export([unixtime/0, to_binary/1]).
+-export([unixtime/0, to_binary/1, unixtime_microsecond/0]).
 
 unixtime() ->
     {M, S, _} = os:timestamp(),
     M * 1000000 + S.
+
+unixtime_microsecond() ->
+    {M, S, Ms} = os:timestamp(),
+    (M * 1000000 + S) * 1000000 + Ms.
 
 %% @doc convert any type to binary
 -spec to_binary(any()) -> binary().

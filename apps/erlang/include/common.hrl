@@ -5,7 +5,14 @@
 -define(__COMMON_HRL__, true).
 
 -include("log.hrl").
+
 -define(undefined, undefined).
+-define(map_name, map_name).
+
+
+-define(ets_mqtt_call, ets_mqtt_call).
+
+
 
 %% 订单号
 -record(mn_id, {

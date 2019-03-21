@@ -38,4 +38,45 @@
         }).
 -endif.
 
+-ifndef('C2S_REGISTER_PB_H').
+-define('C2S_REGISTER_PB_H', true).
+-record('C2S_Register',
+        {use_name               :: iolist(),        % = 1
+         password               :: iolist(),        % = 2
+         phone_number           :: iolist()         % = 3
+        }).
+-endif.
+
+-ifndef('S2C_REGISTER_PB_H').
+-define('S2C_REGISTER_PB_H', true).
+-record('S2C_Register',
+        {code                   :: non_neg_integer() % = 1, 32 bits
+        }).
+-endif.
+
+-ifndef('C2S_LOGIN_PB_H').
+-define('C2S_LOGIN_PB_H', true).
+-record('C2S_Login',
+        {use_name               :: iolist(),        % = 1
+         password               :: iolist()         % = 2
+        }).
+-endif.
+
+-ifndef('S2C_LOGIN_PB_H').
+-define('S2C_LOGIN_PB_H', true).
+-record('S2C_Login',
+        {use_name               :: iolist(),        % = 1
+         money                  :: non_neg_integer() % = 2, 32 bits
+        }).
+-endif.
+
+-ifndef('S2C_ERR_PB_H').
+-define('S2C_ERR_PB_H', true).
+-record('S2C_Err',
+        {code                   :: 'E_S2CErrCode_Succ' | 'E_S2CErrCode_Sys' | 'E_S2CErrCode_Busy' | 'E_S2CErrCode_OpToFrequency' | 'E_S2CErrCode_ReLogin' | 'E_S2CErrCode_NotLogin' | 'E_S2CErrCode_LoginCheckTimeout' | 'E_S2CErrCode_LoginCheckNotThrough' | 'E_S2CErrCode_ErrArgs' | 'E_S2CErrCode_ProtoErr' | 'E_S2CErrCode_BeKicked' | 'E_S2CErrCode_Gs_Maintenance' | 'E_S2CErrCode_NotEnoughMoney' | 'E_S2CErrCode_RoomNotExist' | 'E_S2CErrCode_NotInRoom' | 'E_S2CErrCode_OutOfLimit' | 'E_S2CErrCode_CanNotBet' | integer(), % = 1, enum EnumS2CErrCode
+         type                   :: 'E_S2CErrShowType_PopUp' | integer(), % = 2, enum EnumS2CErrShowType
+         msg                    :: iolist()         % = 3
+        }).
+-endif.
+
 -endif.

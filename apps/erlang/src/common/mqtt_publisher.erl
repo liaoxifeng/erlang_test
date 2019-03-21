@@ -37,10 +37,6 @@ init([Config0]) ->
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
-handle_cast({publish, Topic, CmdBinary}, #{client := Client} = State) ->
-    emqttc:publish(Client, Topic, CmdBinary),
-    {noreply, State};
-
 handle_cast(_Request, State) ->
     {noreply, State}.
 

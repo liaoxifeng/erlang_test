@@ -22,7 +22,11 @@
 %%====================================================================
 
 start_link() ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
+    Ret = supervisor:start_link({local, ?SERVER}, ?MODULE, []),
+    {ok, _} = supervisor:start_child(?MODULE, {player_sup, {player_sup, start_link,[]},
+        transient, infinity, supervisor, [player_sup]}),
+    code:ensure_loaded(mqtt_hdl),
+    Ret.
 
 %%====================================================================
 %% Supervisor callbacks

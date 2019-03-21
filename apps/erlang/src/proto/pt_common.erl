@@ -15,6 +15,8 @@
 -export([find_msg_def/1, fetch_msg_def/1]).
 -export([find_enum_def/1, fetch_enum_def/1]).
 -export([enum_symbol_by_value/2, enum_value_by_symbol/2]).
+-export([enum_symbol_by_value_EnumS2CErrShowType/1, enum_value_by_symbol_EnumS2CErrShowType/1]).
+-export([enum_symbol_by_value_EnumS2CErrCode/1, enum_value_by_symbol_EnumS2CErrCode/1]).
 -export([get_service_names/0]).
 -export([get_service_def/1]).
 -export([get_rpc_names/1]).
@@ -26,8 +28,9 @@
 -include_lib("gpb/include/gpb.hrl").
 
 %% enumerated types
-
--export_type([]).
+-type 'EnumS2CErrShowType'() :: 'E_S2CErrShowType_PopUp'.
+-type 'EnumS2CErrCode'() :: 'E_S2CErrCode_Succ' | 'E_S2CErrCode_Sys' | 'E_S2CErrCode_Busy' | 'E_S2CErrCode_OpToFrequency' | 'E_S2CErrCode_ReLogin' | 'E_S2CErrCode_NotLogin' | 'E_S2CErrCode_LoginCheckTimeout' | 'E_S2CErrCode_LoginCheckNotThrough' | 'E_S2CErrCode_ErrArgs' | 'E_S2CErrCode_ProtoErr' | 'E_S2CErrCode_BeKicked' | 'E_S2CErrCode_Gs_Maintenance' | 'E_S2CErrCode_NotEnoughMoney' | 'E_S2CErrCode_RoomNotExist' | 'E_S2CErrCode_NotInRoom' | 'E_S2CErrCode_OutOfLimit' | 'E_S2CErrCode_CanNotBet'.
+-export_type(['EnumS2CErrShowType'/0, 'EnumS2CErrCode'/0]).
 
 %% message types
 -type 'Person'() :: #'Person'{}.
@@ -38,20 +41,30 @@
 
 -type 'S2C_Heartbeat'() :: #'S2C_Heartbeat'{}.
 
--export_type(['Person'/0, 'Struct_Num'/0, 'C2S_Heartbeat'/0, 'S2C_Heartbeat'/0]).
+-type 'C2S_Register'() :: #'C2S_Register'{}.
 
--spec encode_msg(#'Person'{} | #'Struct_Num'{} | #'C2S_Heartbeat'{} | #'S2C_Heartbeat'{}) -> binary().
+-type 'S2C_Register'() :: #'S2C_Register'{}.
+
+-type 'C2S_Login'() :: #'C2S_Login'{}.
+
+-type 'S2C_Login'() :: #'S2C_Login'{}.
+
+-type 'S2C_Err'() :: #'S2C_Err'{}.
+
+-export_type(['Person'/0, 'Struct_Num'/0, 'C2S_Heartbeat'/0, 'S2C_Heartbeat'/0, 'C2S_Register'/0, 'S2C_Register'/0, 'C2S_Login'/0, 'S2C_Login'/0, 'S2C_Err'/0]).
+
+-spec encode_msg(#'Person'{} | #'Struct_Num'{} | #'C2S_Heartbeat'{} | #'S2C_Heartbeat'{} | #'C2S_Register'{} | #'S2C_Register'{} | #'C2S_Login'{} | #'S2C_Login'{} | #'S2C_Err'{}) -> binary().
 encode_msg(Msg) when tuple_size(Msg) >= 1 ->
     encode_msg(Msg, element(1, Msg), []).
 
--spec encode_msg(#'Person'{} | #'Struct_Num'{} | #'C2S_Heartbeat'{} | #'S2C_Heartbeat'{}, atom() | list()) -> binary().
+-spec encode_msg(#'Person'{} | #'Struct_Num'{} | #'C2S_Heartbeat'{} | #'S2C_Heartbeat'{} | #'C2S_Register'{} | #'S2C_Register'{} | #'C2S_Login'{} | #'S2C_Login'{} | #'S2C_Err'{}, atom() | list()) -> binary().
 encode_msg(Msg, MsgName) when is_atom(MsgName) ->
     encode_msg(Msg, MsgName, []);
 encode_msg(Msg, Opts)
     when tuple_size(Msg) >= 1, is_list(Opts) ->
     encode_msg(Msg, element(1, Msg), Opts).
 
--spec encode_msg(#'Person'{} | #'Struct_Num'{} | #'C2S_Heartbeat'{} | #'S2C_Heartbeat'{}, atom(), list()) -> binary().
+-spec encode_msg(#'Person'{} | #'Struct_Num'{} | #'C2S_Heartbeat'{} | #'S2C_Heartbeat'{} | #'C2S_Register'{} | #'S2C_Register'{} | #'C2S_Login'{} | #'S2C_Login'{} | #'S2C_Err'{}, atom(), list()) -> binary().
 encode_msg(Msg, MsgName, Opts) ->
     case proplists:get_bool(verify, Opts) of
       true -> verify_msg(Msg, MsgName, Opts);
@@ -68,7 +81,19 @@ encode_msg(Msg, MsgName, Opts) ->
 				   TrUserData);
       'S2C_Heartbeat' ->
 	  encode_msg_S2C_Heartbeat(id(Msg, TrUserData),
-				   TrUserData)
+				   TrUserData);
+      'C2S_Register' ->
+	  encode_msg_C2S_Register(id(Msg, TrUserData),
+				  TrUserData);
+      'S2C_Register' ->
+	  encode_msg_S2C_Register(id(Msg, TrUserData),
+				  TrUserData);
+      'C2S_Login' ->
+	  encode_msg_C2S_Login(id(Msg, TrUserData), TrUserData);
+      'S2C_Login' ->
+	  encode_msg_S2C_Login(id(Msg, TrUserData), TrUserData);
+      'S2C_Err' ->
+	  encode_msg_S2C_Err(id(Msg, TrUserData), TrUserData)
     end.
 
 
@@ -116,6 +141,91 @@ encode_msg_C2S_Heartbeat(_Msg, _TrUserData) -> <<>>.
 
 encode_msg_S2C_Heartbeat(_Msg, _TrUserData) -> <<>>.
 
+encode_msg_C2S_Register(Msg, TrUserData) ->
+    encode_msg_C2S_Register(Msg, <<>>, TrUserData).
+
+
+encode_msg_C2S_Register(#'C2S_Register'{use_name = F1,
+					password = F2, phone_number = F3},
+			Bin, TrUserData) ->
+    B1 = begin
+	   TrF1 = id(F1, TrUserData),
+	   e_type_string(TrF1, <<Bin/binary, 10>>, TrUserData)
+	 end,
+    B2 = begin
+	   TrF2 = id(F2, TrUserData),
+	   e_type_string(TrF2, <<B1/binary, 18>>, TrUserData)
+	 end,
+    begin
+      TrF3 = id(F3, TrUserData),
+      e_type_string(TrF3, <<B2/binary, 26>>, TrUserData)
+    end.
+
+encode_msg_S2C_Register(Msg, TrUserData) ->
+    encode_msg_S2C_Register(Msg, <<>>, TrUserData).
+
+
+encode_msg_S2C_Register(#'S2C_Register'{code = F1}, Bin,
+			TrUserData) ->
+    begin
+      TrF1 = id(F1, TrUserData),
+      e_varint(TrF1, <<Bin/binary, 8>>, TrUserData)
+    end.
+
+encode_msg_C2S_Login(Msg, TrUserData) ->
+    encode_msg_C2S_Login(Msg, <<>>, TrUserData).
+
+
+encode_msg_C2S_Login(#'C2S_Login'{use_name = F1,
+				  password = F2},
+		     Bin, TrUserData) ->
+    B1 = begin
+	   TrF1 = id(F1, TrUserData),
+	   e_type_string(TrF1, <<Bin/binary, 10>>, TrUserData)
+	 end,
+    begin
+      TrF2 = id(F2, TrUserData),
+      e_type_string(TrF2, <<B1/binary, 18>>, TrUserData)
+    end.
+
+encode_msg_S2C_Login(Msg, TrUserData) ->
+    encode_msg_S2C_Login(Msg, <<>>, TrUserData).
+
+
+encode_msg_S2C_Login(#'S2C_Login'{use_name = F1,
+				  money = F2},
+		     Bin, TrUserData) ->
+    B1 = begin
+	   TrF1 = id(F1, TrUserData),
+	   e_type_string(TrF1, <<Bin/binary, 10>>, TrUserData)
+	 end,
+    begin
+      TrF2 = id(F2, TrUserData),
+      e_varint(TrF2, <<B1/binary, 16>>, TrUserData)
+    end.
+
+encode_msg_S2C_Err(Msg, TrUserData) ->
+    encode_msg_S2C_Err(Msg, <<>>, TrUserData).
+
+
+encode_msg_S2C_Err(#'S2C_Err'{code = F1, type = F2,
+			      msg = F3},
+		   Bin, TrUserData) ->
+    B1 = begin
+	   TrF1 = id(F1, TrUserData),
+	   e_enum_EnumS2CErrCode(TrF1, <<Bin/binary, 8>>,
+				 TrUserData)
+	 end,
+    B2 = begin
+	   TrF2 = id(F2, TrUserData),
+	   e_enum_EnumS2CErrShowType(TrF2, <<B1/binary, 16>>,
+				     TrUserData)
+	 end,
+    begin
+      TrF3 = id(F3, TrUserData),
+      e_type_string(TrF3, <<B2/binary, 26>>, TrUserData)
+    end.
+
 e_mfield_Person_nums(Msg, Bin, TrUserData) ->
     SubBin = encode_msg_Struct_Num(Msg, <<>>, TrUserData),
     Bin2 = e_varint(byte_size(SubBin), Bin),
@@ -127,6 +237,66 @@ e_field_Person_nums([Elem | Rest], Bin, TrUserData) ->
 				TrUserData),
     e_field_Person_nums(Rest, Bin3, TrUserData);
 e_field_Person_nums([], Bin, _TrUserData) -> Bin.
+
+e_enum_EnumS2CErrShowType('E_S2CErrShowType_PopUp', Bin,
+			  _TrUserData) ->
+    <<Bin/binary, 0>>;
+e_enum_EnumS2CErrShowType(V, Bin, _TrUserData) ->
+    e_varint(V, Bin).
+
+e_enum_EnumS2CErrCode('E_S2CErrCode_Succ', Bin,
+		      _TrUserData) ->
+    <<Bin/binary, 0>>;
+e_enum_EnumS2CErrCode('E_S2CErrCode_Sys', Bin,
+		      _TrUserData) ->
+    <<Bin/binary, 1>>;
+e_enum_EnumS2CErrCode('E_S2CErrCode_Busy', Bin,
+		      _TrUserData) ->
+    <<Bin/binary, 2>>;
+e_enum_EnumS2CErrCode('E_S2CErrCode_OpToFrequency', Bin,
+		      _TrUserData) ->
+    <<Bin/binary, 3>>;
+e_enum_EnumS2CErrCode('E_S2CErrCode_ReLogin', Bin,
+		      _TrUserData) ->
+    <<Bin/binary, 4>>;
+e_enum_EnumS2CErrCode('E_S2CErrCode_NotLogin', Bin,
+		      _TrUserData) ->
+    <<Bin/binary, 5>>;
+e_enum_EnumS2CErrCode('E_S2CErrCode_LoginCheckTimeout',
+		      Bin, _TrUserData) ->
+    <<Bin/binary, 6>>;
+e_enum_EnumS2CErrCode('E_S2CErrCode_LoginCheckNotThrough',
+		      Bin, _TrUserData) ->
+    <<Bin/binary, 7>>;
+e_enum_EnumS2CErrCode('E_S2CErrCode_ErrArgs', Bin,
+		      _TrUserData) ->
+    <<Bin/binary, 8>>;
+e_enum_EnumS2CErrCode('E_S2CErrCode_ProtoErr', Bin,
+		      _TrUserData) ->
+    <<Bin/binary, 9>>;
+e_enum_EnumS2CErrCode('E_S2CErrCode_BeKicked', Bin,
+		      _TrUserData) ->
+    <<Bin/binary, 11>>;
+e_enum_EnumS2CErrCode('E_S2CErrCode_Gs_Maintenance',
+		      Bin, _TrUserData) ->
+    <<Bin/binary, 12>>;
+e_enum_EnumS2CErrCode('E_S2CErrCode_NotEnoughMoney',
+		      Bin, _TrUserData) ->
+    <<Bin/binary, 100>>;
+e_enum_EnumS2CErrCode('E_S2CErrCode_RoomNotExist', Bin,
+		      _TrUserData) ->
+    <<Bin/binary, 101>>;
+e_enum_EnumS2CErrCode('E_S2CErrCode_NotInRoom', Bin,
+		      _TrUserData) ->
+    <<Bin/binary, 102>>;
+e_enum_EnumS2CErrCode('E_S2CErrCode_OutOfLimit', Bin,
+		      _TrUserData) ->
+    <<Bin/binary, 103>>;
+e_enum_EnumS2CErrCode('E_S2CErrCode_CanNotBet', Bin,
+		      _TrUserData) ->
+    <<Bin/binary, 104>>;
+e_enum_EnumS2CErrCode(V, Bin, _TrUserData) ->
+    e_varint(V, Bin).
 
 -compile({nowarn_unused_function,e_type_sint/3}).
 e_type_sint(Value, Bin, _TrUserData) when Value >= 0 ->
@@ -251,7 +421,19 @@ decode_msg_2_doit('C2S_Heartbeat', Bin, TrUserData) ->
        TrUserData);
 decode_msg_2_doit('S2C_Heartbeat', Bin, TrUserData) ->
     id(decode_msg_S2C_Heartbeat(Bin, TrUserData),
-       TrUserData).
+       TrUserData);
+decode_msg_2_doit('C2S_Register', Bin, TrUserData) ->
+    id(decode_msg_C2S_Register(Bin, TrUserData),
+       TrUserData);
+decode_msg_2_doit('S2C_Register', Bin, TrUserData) ->
+    id(decode_msg_S2C_Register(Bin, TrUserData),
+       TrUserData);
+decode_msg_2_doit('C2S_Login', Bin, TrUserData) ->
+    id(decode_msg_C2S_Login(Bin, TrUserData), TrUserData);
+decode_msg_2_doit('S2C_Login', Bin, TrUserData) ->
+    id(decode_msg_S2C_Login(Bin, TrUserData), TrUserData);
+decode_msg_2_doit('S2C_Err', Bin, TrUserData) ->
+    id(decode_msg_S2C_Err(Bin, TrUserData), TrUserData).
 
 
 
@@ -670,6 +852,708 @@ skip_64_S2C_Heartbeat(<<_:64, Rest/binary>>, Z1, Z2,
     dfp_read_field_def_S2C_Heartbeat(Rest, Z1, Z2,
 				     TrUserData).
 
+decode_msg_C2S_Register(Bin, TrUserData) ->
+    dfp_read_field_def_C2S_Register(Bin, 0, 0,
+				    id(undefined, TrUserData),
+				    id(undefined, TrUserData),
+				    id(undefined, TrUserData), TrUserData).
+
+dfp_read_field_def_C2S_Register(<<10, Rest/binary>>, Z1,
+				Z2, F@_1, F@_2, F@_3, TrUserData) ->
+    d_field_C2S_Register_use_name(Rest, Z1, Z2, F@_1, F@_2,
+				  F@_3, TrUserData);
+dfp_read_field_def_C2S_Register(<<18, Rest/binary>>, Z1,
+				Z2, F@_1, F@_2, F@_3, TrUserData) ->
+    d_field_C2S_Register_password(Rest, Z1, Z2, F@_1, F@_2,
+				  F@_3, TrUserData);
+dfp_read_field_def_C2S_Register(<<26, Rest/binary>>, Z1,
+				Z2, F@_1, F@_2, F@_3, TrUserData) ->
+    d_field_C2S_Register_phone_number(Rest, Z1, Z2, F@_1,
+				      F@_2, F@_3, TrUserData);
+dfp_read_field_def_C2S_Register(<<>>, 0, 0, F@_1, F@_2,
+				F@_3, _) ->
+    #'C2S_Register'{use_name = F@_1, password = F@_2,
+		    phone_number = F@_3};
+dfp_read_field_def_C2S_Register(Other, Z1, Z2, F@_1,
+				F@_2, F@_3, TrUserData) ->
+    dg_read_field_def_C2S_Register(Other, Z1, Z2, F@_1,
+				   F@_2, F@_3, TrUserData).
+
+dg_read_field_def_C2S_Register(<<1:1, X:7,
+				 Rest/binary>>,
+			       N, Acc, F@_1, F@_2, F@_3, TrUserData)
+    when N < 32 - 7 ->
+    dg_read_field_def_C2S_Register(Rest, N + 7,
+				   X bsl N + Acc, F@_1, F@_2, F@_3, TrUserData);
+dg_read_field_def_C2S_Register(<<0:1, X:7,
+				 Rest/binary>>,
+			       N, Acc, F@_1, F@_2, F@_3, TrUserData) ->
+    Key = X bsl N + Acc,
+    case Key of
+      10 ->
+	  d_field_C2S_Register_use_name(Rest, 0, 0, F@_1, F@_2,
+					F@_3, TrUserData);
+      18 ->
+	  d_field_C2S_Register_password(Rest, 0, 0, F@_1, F@_2,
+					F@_3, TrUserData);
+      26 ->
+	  d_field_C2S_Register_phone_number(Rest, 0, 0, F@_1,
+					    F@_2, F@_3, TrUserData);
+      _ ->
+	  case Key band 7 of
+	    0 ->
+		skip_varint_C2S_Register(Rest, 0, 0, F@_1, F@_2, F@_3,
+					 TrUserData);
+	    1 ->
+		skip_64_C2S_Register(Rest, 0, 0, F@_1, F@_2, F@_3,
+				     TrUserData);
+	    2 ->
+		skip_length_delimited_C2S_Register(Rest, 0, 0, F@_1,
+						   F@_2, F@_3, TrUserData);
+	    3 ->
+		skip_group_C2S_Register(Rest, Key bsr 3, 0, F@_1, F@_2,
+					F@_3, TrUserData);
+	    5 ->
+		skip_32_C2S_Register(Rest, 0, 0, F@_1, F@_2, F@_3,
+				     TrUserData)
+	  end
+    end;
+dg_read_field_def_C2S_Register(<<>>, 0, 0, F@_1, F@_2,
+			       F@_3, _) ->
+    #'C2S_Register'{use_name = F@_1, password = F@_2,
+		    phone_number = F@_3}.
+
+d_field_C2S_Register_use_name(<<1:1, X:7, Rest/binary>>,
+			      N, Acc, F@_1, F@_2, F@_3, TrUserData)
+    when N < 57 ->
+    d_field_C2S_Register_use_name(Rest, N + 7,
+				  X bsl N + Acc, F@_1, F@_2, F@_3, TrUserData);
+d_field_C2S_Register_use_name(<<0:1, X:7, Rest/binary>>,
+			      N, Acc, _, F@_2, F@_3, TrUserData) ->
+    {NewFValue, RestF} = begin
+			   Len = X bsl N + Acc,
+			   <<Utf8:Len/binary, Rest2/binary>> = Rest,
+			   {id(unicode:characters_to_list(Utf8, unicode),
+			       TrUserData),
+			    Rest2}
+			 end,
+    dfp_read_field_def_C2S_Register(RestF, 0, 0, NewFValue,
+				    F@_2, F@_3, TrUserData).
+
+d_field_C2S_Register_password(<<1:1, X:7, Rest/binary>>,
+			      N, Acc, F@_1, F@_2, F@_3, TrUserData)
+    when N < 57 ->
+    d_field_C2S_Register_password(Rest, N + 7,
+				  X bsl N + Acc, F@_1, F@_2, F@_3, TrUserData);
+d_field_C2S_Register_password(<<0:1, X:7, Rest/binary>>,
+			      N, Acc, F@_1, _, F@_3, TrUserData) ->
+    {NewFValue, RestF} = begin
+			   Len = X bsl N + Acc,
+			   <<Utf8:Len/binary, Rest2/binary>> = Rest,
+			   {id(unicode:characters_to_list(Utf8, unicode),
+			       TrUserData),
+			    Rest2}
+			 end,
+    dfp_read_field_def_C2S_Register(RestF, 0, 0, F@_1,
+				    NewFValue, F@_3, TrUserData).
+
+d_field_C2S_Register_phone_number(<<1:1, X:7,
+				    Rest/binary>>,
+				  N, Acc, F@_1, F@_2, F@_3, TrUserData)
+    when N < 57 ->
+    d_field_C2S_Register_phone_number(Rest, N + 7,
+				      X bsl N + Acc, F@_1, F@_2, F@_3,
+				      TrUserData);
+d_field_C2S_Register_phone_number(<<0:1, X:7,
+				    Rest/binary>>,
+				  N, Acc, F@_1, F@_2, _, TrUserData) ->
+    {NewFValue, RestF} = begin
+			   Len = X bsl N + Acc,
+			   <<Utf8:Len/binary, Rest2/binary>> = Rest,
+			   {id(unicode:characters_to_list(Utf8, unicode),
+			       TrUserData),
+			    Rest2}
+			 end,
+    dfp_read_field_def_C2S_Register(RestF, 0, 0, F@_1, F@_2,
+				    NewFValue, TrUserData).
+
+skip_varint_C2S_Register(<<1:1, _:7, Rest/binary>>, Z1,
+			 Z2, F@_1, F@_2, F@_3, TrUserData) ->
+    skip_varint_C2S_Register(Rest, Z1, Z2, F@_1, F@_2, F@_3,
+			     TrUserData);
+skip_varint_C2S_Register(<<0:1, _:7, Rest/binary>>, Z1,
+			 Z2, F@_1, F@_2, F@_3, TrUserData) ->
+    dfp_read_field_def_C2S_Register(Rest, Z1, Z2, F@_1,
+				    F@_2, F@_3, TrUserData).
+
+skip_length_delimited_C2S_Register(<<1:1, X:7,
+				     Rest/binary>>,
+				   N, Acc, F@_1, F@_2, F@_3, TrUserData)
+    when N < 57 ->
+    skip_length_delimited_C2S_Register(Rest, N + 7,
+				       X bsl N + Acc, F@_1, F@_2, F@_3,
+				       TrUserData);
+skip_length_delimited_C2S_Register(<<0:1, X:7,
+				     Rest/binary>>,
+				   N, Acc, F@_1, F@_2, F@_3, TrUserData) ->
+    Length = X bsl N + Acc,
+    <<_:Length/binary, Rest2/binary>> = Rest,
+    dfp_read_field_def_C2S_Register(Rest2, 0, 0, F@_1, F@_2,
+				    F@_3, TrUserData).
+
+skip_group_C2S_Register(Bin, FNum, Z2, F@_1, F@_2, F@_3,
+			TrUserData) ->
+    {_, Rest} = read_group(Bin, FNum),
+    dfp_read_field_def_C2S_Register(Rest, 0, Z2, F@_1, F@_2,
+				    F@_3, TrUserData).
+
+skip_32_C2S_Register(<<_:32, Rest/binary>>, Z1, Z2,
+		     F@_1, F@_2, F@_3, TrUserData) ->
+    dfp_read_field_def_C2S_Register(Rest, Z1, Z2, F@_1,
+				    F@_2, F@_3, TrUserData).
+
+skip_64_C2S_Register(<<_:64, Rest/binary>>, Z1, Z2,
+		     F@_1, F@_2, F@_3, TrUserData) ->
+    dfp_read_field_def_C2S_Register(Rest, Z1, Z2, F@_1,
+				    F@_2, F@_3, TrUserData).
+
+decode_msg_S2C_Register(Bin, TrUserData) ->
+    dfp_read_field_def_S2C_Register(Bin, 0, 0,
+				    id(undefined, TrUserData), TrUserData).
+
+dfp_read_field_def_S2C_Register(<<8, Rest/binary>>, Z1,
+				Z2, F@_1, TrUserData) ->
+    d_field_S2C_Register_code(Rest, Z1, Z2, F@_1,
+			      TrUserData);
+dfp_read_field_def_S2C_Register(<<>>, 0, 0, F@_1, _) ->
+    #'S2C_Register'{code = F@_1};
+dfp_read_field_def_S2C_Register(Other, Z1, Z2, F@_1,
+				TrUserData) ->
+    dg_read_field_def_S2C_Register(Other, Z1, Z2, F@_1,
+				   TrUserData).
+
+dg_read_field_def_S2C_Register(<<1:1, X:7,
+				 Rest/binary>>,
+			       N, Acc, F@_1, TrUserData)
+    when N < 32 - 7 ->
+    dg_read_field_def_S2C_Register(Rest, N + 7,
+				   X bsl N + Acc, F@_1, TrUserData);
+dg_read_field_def_S2C_Register(<<0:1, X:7,
+				 Rest/binary>>,
+			       N, Acc, F@_1, TrUserData) ->
+    Key = X bsl N + Acc,
+    case Key of
+      8 ->
+	  d_field_S2C_Register_code(Rest, 0, 0, F@_1, TrUserData);
+      _ ->
+	  case Key band 7 of
+	    0 ->
+		skip_varint_S2C_Register(Rest, 0, 0, F@_1, TrUserData);
+	    1 -> skip_64_S2C_Register(Rest, 0, 0, F@_1, TrUserData);
+	    2 ->
+		skip_length_delimited_S2C_Register(Rest, 0, 0, F@_1,
+						   TrUserData);
+	    3 ->
+		skip_group_S2C_Register(Rest, Key bsr 3, 0, F@_1,
+					TrUserData);
+	    5 -> skip_32_S2C_Register(Rest, 0, 0, F@_1, TrUserData)
+	  end
+    end;
+dg_read_field_def_S2C_Register(<<>>, 0, 0, F@_1, _) ->
+    #'S2C_Register'{code = F@_1}.
+
+d_field_S2C_Register_code(<<1:1, X:7, Rest/binary>>, N,
+			  Acc, F@_1, TrUserData)
+    when N < 57 ->
+    d_field_S2C_Register_code(Rest, N + 7, X bsl N + Acc,
+			      F@_1, TrUserData);
+d_field_S2C_Register_code(<<0:1, X:7, Rest/binary>>, N,
+			  Acc, _, TrUserData) ->
+    {NewFValue, RestF} = {id(X bsl N + Acc, TrUserData),
+			  Rest},
+    dfp_read_field_def_S2C_Register(RestF, 0, 0, NewFValue,
+				    TrUserData).
+
+skip_varint_S2C_Register(<<1:1, _:7, Rest/binary>>, Z1,
+			 Z2, F@_1, TrUserData) ->
+    skip_varint_S2C_Register(Rest, Z1, Z2, F@_1,
+			     TrUserData);
+skip_varint_S2C_Register(<<0:1, _:7, Rest/binary>>, Z1,
+			 Z2, F@_1, TrUserData) ->
+    dfp_read_field_def_S2C_Register(Rest, Z1, Z2, F@_1,
+				    TrUserData).
+
+skip_length_delimited_S2C_Register(<<1:1, X:7,
+				     Rest/binary>>,
+				   N, Acc, F@_1, TrUserData)
+    when N < 57 ->
+    skip_length_delimited_S2C_Register(Rest, N + 7,
+				       X bsl N + Acc, F@_1, TrUserData);
+skip_length_delimited_S2C_Register(<<0:1, X:7,
+				     Rest/binary>>,
+				   N, Acc, F@_1, TrUserData) ->
+    Length = X bsl N + Acc,
+    <<_:Length/binary, Rest2/binary>> = Rest,
+    dfp_read_field_def_S2C_Register(Rest2, 0, 0, F@_1,
+				    TrUserData).
+
+skip_group_S2C_Register(Bin, FNum, Z2, F@_1,
+			TrUserData) ->
+    {_, Rest} = read_group(Bin, FNum),
+    dfp_read_field_def_S2C_Register(Rest, 0, Z2, F@_1,
+				    TrUserData).
+
+skip_32_S2C_Register(<<_:32, Rest/binary>>, Z1, Z2,
+		     F@_1, TrUserData) ->
+    dfp_read_field_def_S2C_Register(Rest, Z1, Z2, F@_1,
+				    TrUserData).
+
+skip_64_S2C_Register(<<_:64, Rest/binary>>, Z1, Z2,
+		     F@_1, TrUserData) ->
+    dfp_read_field_def_S2C_Register(Rest, Z1, Z2, F@_1,
+				    TrUserData).
+
+decode_msg_C2S_Login(Bin, TrUserData) ->
+    dfp_read_field_def_C2S_Login(Bin, 0, 0,
+				 id(undefined, TrUserData),
+				 id(undefined, TrUserData), TrUserData).
+
+dfp_read_field_def_C2S_Login(<<10, Rest/binary>>, Z1,
+			     Z2, F@_1, F@_2, TrUserData) ->
+    d_field_C2S_Login_use_name(Rest, Z1, Z2, F@_1, F@_2,
+			       TrUserData);
+dfp_read_field_def_C2S_Login(<<18, Rest/binary>>, Z1,
+			     Z2, F@_1, F@_2, TrUserData) ->
+    d_field_C2S_Login_password(Rest, Z1, Z2, F@_1, F@_2,
+			       TrUserData);
+dfp_read_field_def_C2S_Login(<<>>, 0, 0, F@_1, F@_2,
+			     _) ->
+    #'C2S_Login'{use_name = F@_1, password = F@_2};
+dfp_read_field_def_C2S_Login(Other, Z1, Z2, F@_1, F@_2,
+			     TrUserData) ->
+    dg_read_field_def_C2S_Login(Other, Z1, Z2, F@_1, F@_2,
+				TrUserData).
+
+dg_read_field_def_C2S_Login(<<1:1, X:7, Rest/binary>>,
+			    N, Acc, F@_1, F@_2, TrUserData)
+    when N < 32 - 7 ->
+    dg_read_field_def_C2S_Login(Rest, N + 7, X bsl N + Acc,
+				F@_1, F@_2, TrUserData);
+dg_read_field_def_C2S_Login(<<0:1, X:7, Rest/binary>>,
+			    N, Acc, F@_1, F@_2, TrUserData) ->
+    Key = X bsl N + Acc,
+    case Key of
+      10 ->
+	  d_field_C2S_Login_use_name(Rest, 0, 0, F@_1, F@_2,
+				     TrUserData);
+      18 ->
+	  d_field_C2S_Login_password(Rest, 0, 0, F@_1, F@_2,
+				     TrUserData);
+      _ ->
+	  case Key band 7 of
+	    0 ->
+		skip_varint_C2S_Login(Rest, 0, 0, F@_1, F@_2,
+				      TrUserData);
+	    1 ->
+		skip_64_C2S_Login(Rest, 0, 0, F@_1, F@_2, TrUserData);
+	    2 ->
+		skip_length_delimited_C2S_Login(Rest, 0, 0, F@_1, F@_2,
+						TrUserData);
+	    3 ->
+		skip_group_C2S_Login(Rest, Key bsr 3, 0, F@_1, F@_2,
+				     TrUserData);
+	    5 ->
+		skip_32_C2S_Login(Rest, 0, 0, F@_1, F@_2, TrUserData)
+	  end
+    end;
+dg_read_field_def_C2S_Login(<<>>, 0, 0, F@_1, F@_2,
+			    _) ->
+    #'C2S_Login'{use_name = F@_1, password = F@_2}.
+
+d_field_C2S_Login_use_name(<<1:1, X:7, Rest/binary>>, N,
+			   Acc, F@_1, F@_2, TrUserData)
+    when N < 57 ->
+    d_field_C2S_Login_use_name(Rest, N + 7, X bsl N + Acc,
+			       F@_1, F@_2, TrUserData);
+d_field_C2S_Login_use_name(<<0:1, X:7, Rest/binary>>, N,
+			   Acc, _, F@_2, TrUserData) ->
+    {NewFValue, RestF} = begin
+			   Len = X bsl N + Acc,
+			   <<Utf8:Len/binary, Rest2/binary>> = Rest,
+			   {id(unicode:characters_to_list(Utf8, unicode),
+			       TrUserData),
+			    Rest2}
+			 end,
+    dfp_read_field_def_C2S_Login(RestF, 0, 0, NewFValue,
+				 F@_2, TrUserData).
+
+d_field_C2S_Login_password(<<1:1, X:7, Rest/binary>>, N,
+			   Acc, F@_1, F@_2, TrUserData)
+    when N < 57 ->
+    d_field_C2S_Login_password(Rest, N + 7, X bsl N + Acc,
+			       F@_1, F@_2, TrUserData);
+d_field_C2S_Login_password(<<0:1, X:7, Rest/binary>>, N,
+			   Acc, F@_1, _, TrUserData) ->
+    {NewFValue, RestF} = begin
+			   Len = X bsl N + Acc,
+			   <<Utf8:Len/binary, Rest2/binary>> = Rest,
+			   {id(unicode:characters_to_list(Utf8, unicode),
+			       TrUserData),
+			    Rest2}
+			 end,
+    dfp_read_field_def_C2S_Login(RestF, 0, 0, F@_1,
+				 NewFValue, TrUserData).
+
+skip_varint_C2S_Login(<<1:1, _:7, Rest/binary>>, Z1, Z2,
+		      F@_1, F@_2, TrUserData) ->
+    skip_varint_C2S_Login(Rest, Z1, Z2, F@_1, F@_2,
+			  TrUserData);
+skip_varint_C2S_Login(<<0:1, _:7, Rest/binary>>, Z1, Z2,
+		      F@_1, F@_2, TrUserData) ->
+    dfp_read_field_def_C2S_Login(Rest, Z1, Z2, F@_1, F@_2,
+				 TrUserData).
+
+skip_length_delimited_C2S_Login(<<1:1, X:7,
+				  Rest/binary>>,
+				N, Acc, F@_1, F@_2, TrUserData)
+    when N < 57 ->
+    skip_length_delimited_C2S_Login(Rest, N + 7,
+				    X bsl N + Acc, F@_1, F@_2, TrUserData);
+skip_length_delimited_C2S_Login(<<0:1, X:7,
+				  Rest/binary>>,
+				N, Acc, F@_1, F@_2, TrUserData) ->
+    Length = X bsl N + Acc,
+    <<_:Length/binary, Rest2/binary>> = Rest,
+    dfp_read_field_def_C2S_Login(Rest2, 0, 0, F@_1, F@_2,
+				 TrUserData).
+
+skip_group_C2S_Login(Bin, FNum, Z2, F@_1, F@_2,
+		     TrUserData) ->
+    {_, Rest} = read_group(Bin, FNum),
+    dfp_read_field_def_C2S_Login(Rest, 0, Z2, F@_1, F@_2,
+				 TrUserData).
+
+skip_32_C2S_Login(<<_:32, Rest/binary>>, Z1, Z2, F@_1,
+		  F@_2, TrUserData) ->
+    dfp_read_field_def_C2S_Login(Rest, Z1, Z2, F@_1, F@_2,
+				 TrUserData).
+
+skip_64_C2S_Login(<<_:64, Rest/binary>>, Z1, Z2, F@_1,
+		  F@_2, TrUserData) ->
+    dfp_read_field_def_C2S_Login(Rest, Z1, Z2, F@_1, F@_2,
+				 TrUserData).
+
+decode_msg_S2C_Login(Bin, TrUserData) ->
+    dfp_read_field_def_S2C_Login(Bin, 0, 0,
+				 id(undefined, TrUserData),
+				 id(undefined, TrUserData), TrUserData).
+
+dfp_read_field_def_S2C_Login(<<10, Rest/binary>>, Z1,
+			     Z2, F@_1, F@_2, TrUserData) ->
+    d_field_S2C_Login_use_name(Rest, Z1, Z2, F@_1, F@_2,
+			       TrUserData);
+dfp_read_field_def_S2C_Login(<<16, Rest/binary>>, Z1,
+			     Z2, F@_1, F@_2, TrUserData) ->
+    d_field_S2C_Login_money(Rest, Z1, Z2, F@_1, F@_2,
+			    TrUserData);
+dfp_read_field_def_S2C_Login(<<>>, 0, 0, F@_1, F@_2,
+			     _) ->
+    #'S2C_Login'{use_name = F@_1, money = F@_2};
+dfp_read_field_def_S2C_Login(Other, Z1, Z2, F@_1, F@_2,
+			     TrUserData) ->
+    dg_read_field_def_S2C_Login(Other, Z1, Z2, F@_1, F@_2,
+				TrUserData).
+
+dg_read_field_def_S2C_Login(<<1:1, X:7, Rest/binary>>,
+			    N, Acc, F@_1, F@_2, TrUserData)
+    when N < 32 - 7 ->
+    dg_read_field_def_S2C_Login(Rest, N + 7, X bsl N + Acc,
+				F@_1, F@_2, TrUserData);
+dg_read_field_def_S2C_Login(<<0:1, X:7, Rest/binary>>,
+			    N, Acc, F@_1, F@_2, TrUserData) ->
+    Key = X bsl N + Acc,
+    case Key of
+      10 ->
+	  d_field_S2C_Login_use_name(Rest, 0, 0, F@_1, F@_2,
+				     TrUserData);
+      16 ->
+	  d_field_S2C_Login_money(Rest, 0, 0, F@_1, F@_2,
+				  TrUserData);
+      _ ->
+	  case Key band 7 of
+	    0 ->
+		skip_varint_S2C_Login(Rest, 0, 0, F@_1, F@_2,
+				      TrUserData);
+	    1 ->
+		skip_64_S2C_Login(Rest, 0, 0, F@_1, F@_2, TrUserData);
+	    2 ->
+		skip_length_delimited_S2C_Login(Rest, 0, 0, F@_1, F@_2,
+						TrUserData);
+	    3 ->
+		skip_group_S2C_Login(Rest, Key bsr 3, 0, F@_1, F@_2,
+				     TrUserData);
+	    5 ->
+		skip_32_S2C_Login(Rest, 0, 0, F@_1, F@_2, TrUserData)
+	  end
+    end;
+dg_read_field_def_S2C_Login(<<>>, 0, 0, F@_1, F@_2,
+			    _) ->
+    #'S2C_Login'{use_name = F@_1, money = F@_2}.
+
+d_field_S2C_Login_use_name(<<1:1, X:7, Rest/binary>>, N,
+			   Acc, F@_1, F@_2, TrUserData)
+    when N < 57 ->
+    d_field_S2C_Login_use_name(Rest, N + 7, X bsl N + Acc,
+			       F@_1, F@_2, TrUserData);
+d_field_S2C_Login_use_name(<<0:1, X:7, Rest/binary>>, N,
+			   Acc, _, F@_2, TrUserData) ->
+    {NewFValue, RestF} = begin
+			   Len = X bsl N + Acc,
+			   <<Utf8:Len/binary, Rest2/binary>> = Rest,
+			   {id(unicode:characters_to_list(Utf8, unicode),
+			       TrUserData),
+			    Rest2}
+			 end,
+    dfp_read_field_def_S2C_Login(RestF, 0, 0, NewFValue,
+				 F@_2, TrUserData).
+
+d_field_S2C_Login_money(<<1:1, X:7, Rest/binary>>, N,
+			Acc, F@_1, F@_2, TrUserData)
+    when N < 57 ->
+    d_field_S2C_Login_money(Rest, N + 7, X bsl N + Acc,
+			    F@_1, F@_2, TrUserData);
+d_field_S2C_Login_money(<<0:1, X:7, Rest/binary>>, N,
+			Acc, F@_1, _, TrUserData) ->
+    {NewFValue, RestF} = {id(X bsl N + Acc, TrUserData),
+			  Rest},
+    dfp_read_field_def_S2C_Login(RestF, 0, 0, F@_1,
+				 NewFValue, TrUserData).
+
+skip_varint_S2C_Login(<<1:1, _:7, Rest/binary>>, Z1, Z2,
+		      F@_1, F@_2, TrUserData) ->
+    skip_varint_S2C_Login(Rest, Z1, Z2, F@_1, F@_2,
+			  TrUserData);
+skip_varint_S2C_Login(<<0:1, _:7, Rest/binary>>, Z1, Z2,
+		      F@_1, F@_2, TrUserData) ->
+    dfp_read_field_def_S2C_Login(Rest, Z1, Z2, F@_1, F@_2,
+				 TrUserData).
+
+skip_length_delimited_S2C_Login(<<1:1, X:7,
+				  Rest/binary>>,
+				N, Acc, F@_1, F@_2, TrUserData)
+    when N < 57 ->
+    skip_length_delimited_S2C_Login(Rest, N + 7,
+				    X bsl N + Acc, F@_1, F@_2, TrUserData);
+skip_length_delimited_S2C_Login(<<0:1, X:7,
+				  Rest/binary>>,
+				N, Acc, F@_1, F@_2, TrUserData) ->
+    Length = X bsl N + Acc,
+    <<_:Length/binary, Rest2/binary>> = Rest,
+    dfp_read_field_def_S2C_Login(Rest2, 0, 0, F@_1, F@_2,
+				 TrUserData).
+
+skip_group_S2C_Login(Bin, FNum, Z2, F@_1, F@_2,
+		     TrUserData) ->
+    {_, Rest} = read_group(Bin, FNum),
+    dfp_read_field_def_S2C_Login(Rest, 0, Z2, F@_1, F@_2,
+				 TrUserData).
+
+skip_32_S2C_Login(<<_:32, Rest/binary>>, Z1, Z2, F@_1,
+		  F@_2, TrUserData) ->
+    dfp_read_field_def_S2C_Login(Rest, Z1, Z2, F@_1, F@_2,
+				 TrUserData).
+
+skip_64_S2C_Login(<<_:64, Rest/binary>>, Z1, Z2, F@_1,
+		  F@_2, TrUserData) ->
+    dfp_read_field_def_S2C_Login(Rest, Z1, Z2, F@_1, F@_2,
+				 TrUserData).
+
+decode_msg_S2C_Err(Bin, TrUserData) ->
+    dfp_read_field_def_S2C_Err(Bin, 0, 0,
+			       id(undefined, TrUserData),
+			       id(undefined, TrUserData),
+			       id(undefined, TrUserData), TrUserData).
+
+dfp_read_field_def_S2C_Err(<<8, Rest/binary>>, Z1, Z2,
+			   F@_1, F@_2, F@_3, TrUserData) ->
+    d_field_S2C_Err_code(Rest, Z1, Z2, F@_1, F@_2, F@_3,
+			 TrUserData);
+dfp_read_field_def_S2C_Err(<<16, Rest/binary>>, Z1, Z2,
+			   F@_1, F@_2, F@_3, TrUserData) ->
+    d_field_S2C_Err_type(Rest, Z1, Z2, F@_1, F@_2, F@_3,
+			 TrUserData);
+dfp_read_field_def_S2C_Err(<<26, Rest/binary>>, Z1, Z2,
+			   F@_1, F@_2, F@_3, TrUserData) ->
+    d_field_S2C_Err_msg(Rest, Z1, Z2, F@_1, F@_2, F@_3,
+			TrUserData);
+dfp_read_field_def_S2C_Err(<<>>, 0, 0, F@_1, F@_2, F@_3,
+			   _) ->
+    #'S2C_Err'{code = F@_1, type = F@_2, msg = F@_3};
+dfp_read_field_def_S2C_Err(Other, Z1, Z2, F@_1, F@_2,
+			   F@_3, TrUserData) ->
+    dg_read_field_def_S2C_Err(Other, Z1, Z2, F@_1, F@_2,
+			      F@_3, TrUserData).
+
+dg_read_field_def_S2C_Err(<<1:1, X:7, Rest/binary>>, N,
+			  Acc, F@_1, F@_2, F@_3, TrUserData)
+    when N < 32 - 7 ->
+    dg_read_field_def_S2C_Err(Rest, N + 7, X bsl N + Acc,
+			      F@_1, F@_2, F@_3, TrUserData);
+dg_read_field_def_S2C_Err(<<0:1, X:7, Rest/binary>>, N,
+			  Acc, F@_1, F@_2, F@_3, TrUserData) ->
+    Key = X bsl N + Acc,
+    case Key of
+      8 ->
+	  d_field_S2C_Err_code(Rest, 0, 0, F@_1, F@_2, F@_3,
+			       TrUserData);
+      16 ->
+	  d_field_S2C_Err_type(Rest, 0, 0, F@_1, F@_2, F@_3,
+			       TrUserData);
+      26 ->
+	  d_field_S2C_Err_msg(Rest, 0, 0, F@_1, F@_2, F@_3,
+			      TrUserData);
+      _ ->
+	  case Key band 7 of
+	    0 ->
+		skip_varint_S2C_Err(Rest, 0, 0, F@_1, F@_2, F@_3,
+				    TrUserData);
+	    1 ->
+		skip_64_S2C_Err(Rest, 0, 0, F@_1, F@_2, F@_3,
+				TrUserData);
+	    2 ->
+		skip_length_delimited_S2C_Err(Rest, 0, 0, F@_1, F@_2,
+					      F@_3, TrUserData);
+	    3 ->
+		skip_group_S2C_Err(Rest, Key bsr 3, 0, F@_1, F@_2, F@_3,
+				   TrUserData);
+	    5 ->
+		skip_32_S2C_Err(Rest, 0, 0, F@_1, F@_2, F@_3,
+				TrUserData)
+	  end
+    end;
+dg_read_field_def_S2C_Err(<<>>, 0, 0, F@_1, F@_2, F@_3,
+			  _) ->
+    #'S2C_Err'{code = F@_1, type = F@_2, msg = F@_3}.
+
+d_field_S2C_Err_code(<<1:1, X:7, Rest/binary>>, N, Acc,
+		     F@_1, F@_2, F@_3, TrUserData)
+    when N < 57 ->
+    d_field_S2C_Err_code(Rest, N + 7, X bsl N + Acc, F@_1,
+			 F@_2, F@_3, TrUserData);
+d_field_S2C_Err_code(<<0:1, X:7, Rest/binary>>, N, Acc,
+		     _, F@_2, F@_3, TrUserData) ->
+    {NewFValue, RestF} = {id(d_enum_EnumS2CErrCode(begin
+						     <<Res:32/signed-native>> =
+							 <<(X bsl N +
+							      Acc):32/unsigned-native>>,
+						     id(Res, TrUserData)
+						   end),
+			     TrUserData),
+			  Rest},
+    dfp_read_field_def_S2C_Err(RestF, 0, 0, NewFValue, F@_2,
+			       F@_3, TrUserData).
+
+d_field_S2C_Err_type(<<1:1, X:7, Rest/binary>>, N, Acc,
+		     F@_1, F@_2, F@_3, TrUserData)
+    when N < 57 ->
+    d_field_S2C_Err_type(Rest, N + 7, X bsl N + Acc, F@_1,
+			 F@_2, F@_3, TrUserData);
+d_field_S2C_Err_type(<<0:1, X:7, Rest/binary>>, N, Acc,
+		     F@_1, _, F@_3, TrUserData) ->
+    {NewFValue, RestF} = {id(d_enum_EnumS2CErrShowType(begin
+							 <<Res:32/signed-native>> =
+							     <<(X bsl N +
+								  Acc):32/unsigned-native>>,
+							 id(Res, TrUserData)
+						       end),
+			     TrUserData),
+			  Rest},
+    dfp_read_field_def_S2C_Err(RestF, 0, 0, F@_1, NewFValue,
+			       F@_3, TrUserData).
+
+d_field_S2C_Err_msg(<<1:1, X:7, Rest/binary>>, N, Acc,
+		    F@_1, F@_2, F@_3, TrUserData)
+    when N < 57 ->
+    d_field_S2C_Err_msg(Rest, N + 7, X bsl N + Acc, F@_1,
+			F@_2, F@_3, TrUserData);
+d_field_S2C_Err_msg(<<0:1, X:7, Rest/binary>>, N, Acc,
+		    F@_1, F@_2, _, TrUserData) ->
+    {NewFValue, RestF} = begin
+			   Len = X bsl N + Acc,
+			   <<Utf8:Len/binary, Rest2/binary>> = Rest,
+			   {id(unicode:characters_to_list(Utf8, unicode),
+			       TrUserData),
+			    Rest2}
+			 end,
+    dfp_read_field_def_S2C_Err(RestF, 0, 0, F@_1, F@_2,
+			       NewFValue, TrUserData).
+
+skip_varint_S2C_Err(<<1:1, _:7, Rest/binary>>, Z1, Z2,
+		    F@_1, F@_2, F@_3, TrUserData) ->
+    skip_varint_S2C_Err(Rest, Z1, Z2, F@_1, F@_2, F@_3,
+			TrUserData);
+skip_varint_S2C_Err(<<0:1, _:7, Rest/binary>>, Z1, Z2,
+		    F@_1, F@_2, F@_3, TrUserData) ->
+    dfp_read_field_def_S2C_Err(Rest, Z1, Z2, F@_1, F@_2,
+			       F@_3, TrUserData).
+
+skip_length_delimited_S2C_Err(<<1:1, X:7, Rest/binary>>,
+			      N, Acc, F@_1, F@_2, F@_3, TrUserData)
+    when N < 57 ->
+    skip_length_delimited_S2C_Err(Rest, N + 7,
+				  X bsl N + Acc, F@_1, F@_2, F@_3, TrUserData);
+skip_length_delimited_S2C_Err(<<0:1, X:7, Rest/binary>>,
+			      N, Acc, F@_1, F@_2, F@_3, TrUserData) ->
+    Length = X bsl N + Acc,
+    <<_:Length/binary, Rest2/binary>> = Rest,
+    dfp_read_field_def_S2C_Err(Rest2, 0, 0, F@_1, F@_2,
+			       F@_3, TrUserData).
+
+skip_group_S2C_Err(Bin, FNum, Z2, F@_1, F@_2, F@_3,
+		   TrUserData) ->
+    {_, Rest} = read_group(Bin, FNum),
+    dfp_read_field_def_S2C_Err(Rest, 0, Z2, F@_1, F@_2,
+			       F@_3, TrUserData).
+
+skip_32_S2C_Err(<<_:32, Rest/binary>>, Z1, Z2, F@_1,
+		F@_2, F@_3, TrUserData) ->
+    dfp_read_field_def_S2C_Err(Rest, Z1, Z2, F@_1, F@_2,
+			       F@_3, TrUserData).
+
+skip_64_S2C_Err(<<_:64, Rest/binary>>, Z1, Z2, F@_1,
+		F@_2, F@_3, TrUserData) ->
+    dfp_read_field_def_S2C_Err(Rest, Z1, Z2, F@_1, F@_2,
+			       F@_3, TrUserData).
+
+d_enum_EnumS2CErrShowType(0) ->
+    'E_S2CErrShowType_PopUp';
+d_enum_EnumS2CErrShowType(V) -> V.
+
+d_enum_EnumS2CErrCode(0) -> 'E_S2CErrCode_Succ';
+d_enum_EnumS2CErrCode(1) -> 'E_S2CErrCode_Sys';
+d_enum_EnumS2CErrCode(2) -> 'E_S2CErrCode_Busy';
+d_enum_EnumS2CErrCode(3) ->
+    'E_S2CErrCode_OpToFrequency';
+d_enum_EnumS2CErrCode(4) -> 'E_S2CErrCode_ReLogin';
+d_enum_EnumS2CErrCode(5) -> 'E_S2CErrCode_NotLogin';
+d_enum_EnumS2CErrCode(6) ->
+    'E_S2CErrCode_LoginCheckTimeout';
+d_enum_EnumS2CErrCode(7) ->
+    'E_S2CErrCode_LoginCheckNotThrough';
+d_enum_EnumS2CErrCode(8) -> 'E_S2CErrCode_ErrArgs';
+d_enum_EnumS2CErrCode(9) -> 'E_S2CErrCode_ProtoErr';
+d_enum_EnumS2CErrCode(11) -> 'E_S2CErrCode_BeKicked';
+d_enum_EnumS2CErrCode(12) ->
+    'E_S2CErrCode_Gs_Maintenance';
+d_enum_EnumS2CErrCode(100) ->
+    'E_S2CErrCode_NotEnoughMoney';
+d_enum_EnumS2CErrCode(101) ->
+    'E_S2CErrCode_RoomNotExist';
+d_enum_EnumS2CErrCode(102) -> 'E_S2CErrCode_NotInRoom';
+d_enum_EnumS2CErrCode(103) -> 'E_S2CErrCode_OutOfLimit';
+d_enum_EnumS2CErrCode(104) -> 'E_S2CErrCode_CanNotBet';
+d_enum_EnumS2CErrCode(V) -> V.
+
 read_group(Bin, FieldNum) ->
     {NumBytes, EndTagLen} = read_gr_b(Bin, 0, 0, 0, 0, FieldNum),
     <<Group:NumBytes/binary, _:EndTagLen/binary, Rest/binary>> = Bin,
@@ -748,7 +1632,16 @@ merge_msgs(Prev, New, MsgName, Opts) ->
       'C2S_Heartbeat' ->
 	  merge_msg_C2S_Heartbeat(Prev, New, TrUserData);
       'S2C_Heartbeat' ->
-	  merge_msg_S2C_Heartbeat(Prev, New, TrUserData)
+	  merge_msg_S2C_Heartbeat(Prev, New, TrUserData);
+      'C2S_Register' ->
+	  merge_msg_C2S_Register(Prev, New, TrUserData);
+      'S2C_Register' ->
+	  merge_msg_S2C_Register(Prev, New, TrUserData);
+      'C2S_Login' ->
+	  merge_msg_C2S_Login(Prev, New, TrUserData);
+      'S2C_Login' ->
+	  merge_msg_S2C_Login(Prev, New, TrUserData);
+      'S2C_Err' -> merge_msg_S2C_Err(Prev, New, TrUserData)
     end.
 
 -compile({nowarn_unused_function,merge_msg_Person/3}).
@@ -780,6 +1673,40 @@ merge_msg_C2S_Heartbeat(_Prev, New, _TrUserData) -> New.
 -compile({nowarn_unused_function,merge_msg_S2C_Heartbeat/3}).
 merge_msg_S2C_Heartbeat(_Prev, New, _TrUserData) -> New.
 
+-compile({nowarn_unused_function,merge_msg_C2S_Register/3}).
+merge_msg_C2S_Register(#'C2S_Register'{},
+		       #'C2S_Register'{use_name = NFuse_name,
+				       password = NFpassword,
+				       phone_number = NFphone_number},
+		       _) ->
+    #'C2S_Register'{use_name = NFuse_name,
+		    password = NFpassword, phone_number = NFphone_number}.
+
+-compile({nowarn_unused_function,merge_msg_S2C_Register/3}).
+merge_msg_S2C_Register(#'S2C_Register'{},
+		       #'S2C_Register'{code = NFcode}, _) ->
+    #'S2C_Register'{code = NFcode}.
+
+-compile({nowarn_unused_function,merge_msg_C2S_Login/3}).
+merge_msg_C2S_Login(#'C2S_Login'{},
+		    #'C2S_Login'{use_name = NFuse_name,
+				 password = NFpassword},
+		    _) ->
+    #'C2S_Login'{use_name = NFuse_name,
+		 password = NFpassword}.
+
+-compile({nowarn_unused_function,merge_msg_S2C_Login/3}).
+merge_msg_S2C_Login(#'S2C_Login'{},
+		    #'S2C_Login'{use_name = NFuse_name, money = NFmoney},
+		    _) ->
+    #'S2C_Login'{use_name = NFuse_name, money = NFmoney}.
+
+-compile({nowarn_unused_function,merge_msg_S2C_Err/3}).
+merge_msg_S2C_Err(#'S2C_Err'{},
+		  #'S2C_Err'{code = NFcode, type = NFtype, msg = NFmsg},
+		  _) ->
+    #'S2C_Err'{code = NFcode, type = NFtype, msg = NFmsg}.
+
 
 verify_msg(Msg) when tuple_size(Msg) >= 1 ->
     verify_msg(Msg, element(1, Msg), []);
@@ -803,6 +1730,15 @@ verify_msg(Msg, MsgName, Opts) ->
 	  v_msg_C2S_Heartbeat(Msg, [MsgName], TrUserData);
       'S2C_Heartbeat' ->
 	  v_msg_S2C_Heartbeat(Msg, [MsgName], TrUserData);
+      'C2S_Register' ->
+	  v_msg_C2S_Register(Msg, [MsgName], TrUserData);
+      'S2C_Register' ->
+	  v_msg_S2C_Register(Msg, [MsgName], TrUserData);
+      'C2S_Login' ->
+	  v_msg_C2S_Login(Msg, [MsgName], TrUserData);
+      'S2C_Login' ->
+	  v_msg_S2C_Login(Msg, [MsgName], TrUserData);
+      'S2C_Err' -> v_msg_S2C_Err(Msg, [MsgName], TrUserData);
       _ -> mk_type_error(not_a_known_message, Msg, [])
     end.
 
@@ -849,6 +1785,145 @@ v_msg_S2C_Heartbeat(#'S2C_Heartbeat'{}, _Path, _) -> ok;
 v_msg_S2C_Heartbeat(X, Path, _TrUserData) ->
     mk_type_error({expected_msg, 'S2C_Heartbeat'}, X, Path).
 
+-compile({nowarn_unused_function,v_msg_C2S_Register/3}).
+-dialyzer({nowarn_function,v_msg_C2S_Register/3}).
+v_msg_C2S_Register(#'C2S_Register'{use_name = F1,
+				   password = F2, phone_number = F3},
+		   Path, TrUserData) ->
+    v_type_string(F1, [use_name | Path], TrUserData),
+    v_type_string(F2, [password | Path], TrUserData),
+    v_type_string(F3, [phone_number | Path], TrUserData),
+    ok;
+v_msg_C2S_Register(X, Path, _TrUserData) ->
+    mk_type_error({expected_msg, 'C2S_Register'}, X, Path).
+
+-compile({nowarn_unused_function,v_msg_S2C_Register/3}).
+-dialyzer({nowarn_function,v_msg_S2C_Register/3}).
+v_msg_S2C_Register(#'S2C_Register'{code = F1}, Path,
+		   TrUserData) ->
+    v_type_uint32(F1, [code | Path], TrUserData), ok;
+v_msg_S2C_Register(X, Path, _TrUserData) ->
+    mk_type_error({expected_msg, 'S2C_Register'}, X, Path).
+
+-compile({nowarn_unused_function,v_msg_C2S_Login/3}).
+-dialyzer({nowarn_function,v_msg_C2S_Login/3}).
+v_msg_C2S_Login(#'C2S_Login'{use_name = F1,
+			     password = F2},
+		Path, TrUserData) ->
+    v_type_string(F1, [use_name | Path], TrUserData),
+    v_type_string(F2, [password | Path], TrUserData),
+    ok;
+v_msg_C2S_Login(X, Path, _TrUserData) ->
+    mk_type_error({expected_msg, 'C2S_Login'}, X, Path).
+
+-compile({nowarn_unused_function,v_msg_S2C_Login/3}).
+-dialyzer({nowarn_function,v_msg_S2C_Login/3}).
+v_msg_S2C_Login(#'S2C_Login'{use_name = F1, money = F2},
+		Path, TrUserData) ->
+    v_type_string(F1, [use_name | Path], TrUserData),
+    v_type_uint64(F2, [money | Path], TrUserData),
+    ok;
+v_msg_S2C_Login(X, Path, _TrUserData) ->
+    mk_type_error({expected_msg, 'S2C_Login'}, X, Path).
+
+-compile({nowarn_unused_function,v_msg_S2C_Err/3}).
+-dialyzer({nowarn_function,v_msg_S2C_Err/3}).
+v_msg_S2C_Err(#'S2C_Err'{code = F1, type = F2,
+			 msg = F3},
+	      Path, TrUserData) ->
+    v_enum_EnumS2CErrCode(F1, [code | Path], TrUserData),
+    v_enum_EnumS2CErrShowType(F2, [type | Path],
+			      TrUserData),
+    v_type_string(F3, [msg | Path], TrUserData),
+    ok;
+v_msg_S2C_Err(X, Path, _TrUserData) ->
+    mk_type_error({expected_msg, 'S2C_Err'}, X, Path).
+
+-compile({nowarn_unused_function,v_enum_EnumS2CErrShowType/3}).
+-dialyzer({nowarn_function,v_enum_EnumS2CErrShowType/3}).
+v_enum_EnumS2CErrShowType('E_S2CErrShowType_PopUp',
+			  _Path, _TrUserData) ->
+    ok;
+v_enum_EnumS2CErrShowType(V, Path, TrUserData)
+    when is_integer(V) ->
+    v_type_sint32(V, Path, TrUserData);
+v_enum_EnumS2CErrShowType(X, Path, _TrUserData) ->
+    mk_type_error({invalid_enum, 'EnumS2CErrShowType'}, X,
+		  Path).
+
+-compile({nowarn_unused_function,v_enum_EnumS2CErrCode/3}).
+-dialyzer({nowarn_function,v_enum_EnumS2CErrCode/3}).
+v_enum_EnumS2CErrCode('E_S2CErrCode_Succ', _Path,
+		      _TrUserData) ->
+    ok;
+v_enum_EnumS2CErrCode('E_S2CErrCode_Sys', _Path,
+		      _TrUserData) ->
+    ok;
+v_enum_EnumS2CErrCode('E_S2CErrCode_Busy', _Path,
+		      _TrUserData) ->
+    ok;
+v_enum_EnumS2CErrCode('E_S2CErrCode_OpToFrequency',
+		      _Path, _TrUserData) ->
+    ok;
+v_enum_EnumS2CErrCode('E_S2CErrCode_ReLogin', _Path,
+		      _TrUserData) ->
+    ok;
+v_enum_EnumS2CErrCode('E_S2CErrCode_NotLogin', _Path,
+		      _TrUserData) ->
+    ok;
+v_enum_EnumS2CErrCode('E_S2CErrCode_LoginCheckTimeout',
+		      _Path, _TrUserData) ->
+    ok;
+v_enum_EnumS2CErrCode('E_S2CErrCode_LoginCheckNotThrough',
+		      _Path, _TrUserData) ->
+    ok;
+v_enum_EnumS2CErrCode('E_S2CErrCode_ErrArgs', _Path,
+		      _TrUserData) ->
+    ok;
+v_enum_EnumS2CErrCode('E_S2CErrCode_ProtoErr', _Path,
+		      _TrUserData) ->
+    ok;
+v_enum_EnumS2CErrCode('E_S2CErrCode_BeKicked', _Path,
+		      _TrUserData) ->
+    ok;
+v_enum_EnumS2CErrCode('E_S2CErrCode_Gs_Maintenance',
+		      _Path, _TrUserData) ->
+    ok;
+v_enum_EnumS2CErrCode('E_S2CErrCode_NotEnoughMoney',
+		      _Path, _TrUserData) ->
+    ok;
+v_enum_EnumS2CErrCode('E_S2CErrCode_RoomNotExist',
+		      _Path, _TrUserData) ->
+    ok;
+v_enum_EnumS2CErrCode('E_S2CErrCode_NotInRoom', _Path,
+		      _TrUserData) ->
+    ok;
+v_enum_EnumS2CErrCode('E_S2CErrCode_OutOfLimit', _Path,
+		      _TrUserData) ->
+    ok;
+v_enum_EnumS2CErrCode('E_S2CErrCode_CanNotBet', _Path,
+		      _TrUserData) ->
+    ok;
+v_enum_EnumS2CErrCode(V, Path, TrUserData)
+    when is_integer(V) ->
+    v_type_sint32(V, Path, TrUserData);
+v_enum_EnumS2CErrCode(X, Path, _TrUserData) ->
+    mk_type_error({invalid_enum, 'EnumS2CErrCode'}, X,
+		  Path).
+
+-compile({nowarn_unused_function,v_type_sint32/3}).
+-dialyzer({nowarn_function,v_type_sint32/3}).
+v_type_sint32(N, _Path, _TrUserData)
+    when -2147483648 =< N, N =< 2147483647 ->
+    ok;
+v_type_sint32(N, Path, _TrUserData)
+    when is_integer(N) ->
+    mk_type_error({value_out_of_range, sint32, signed, 32},
+		  N, Path);
+v_type_sint32(X, Path, _TrUserData) ->
+    mk_type_error({bad_integer, sint32, signed, 32}, X,
+		  Path).
+
 -compile({nowarn_unused_function,v_type_int32/3}).
 -dialyzer({nowarn_function,v_type_int32/3}).
 v_type_int32(N, _Path, _TrUserData)
@@ -873,6 +1948,20 @@ v_type_uint32(N, Path, _TrUserData)
 		  N, Path);
 v_type_uint32(X, Path, _TrUserData) ->
     mk_type_error({bad_integer, uint32, unsigned, 32}, X,
+		  Path).
+
+-compile({nowarn_unused_function,v_type_uint64/3}).
+-dialyzer({nowarn_function,v_type_uint64/3}).
+v_type_uint64(N, _Path, _TrUserData)
+    when 0 =< N, N =< 18446744073709551615 ->
+    ok;
+v_type_uint64(N, Path, _TrUserData)
+    when is_integer(N) ->
+    mk_type_error({value_out_of_range, uint64, unsigned,
+		   64},
+		  N, Path);
+v_type_uint64(X, Path, _TrUserData) ->
+    mk_type_error({bad_integer, uint64, unsigned, 64}, X,
 		  Path).
 
 -compile({nowarn_unused_function,v_type_string/3}).
@@ -931,7 +2020,26 @@ cons(Elem, Acc, _TrUserData) -> [Elem | Acc].
 'erlang_++'(A, B, _TrUserData) -> A ++ B.
 
 get_msg_defs() ->
-    [{{msg, 'Person'},
+    [{{enum, 'EnumS2CErrShowType'},
+      [{'E_S2CErrShowType_PopUp', 0}]},
+     {{enum, 'EnumS2CErrCode'},
+      [{'E_S2CErrCode_Succ', 0}, {'E_S2CErrCode_Sys', 1},
+       {'E_S2CErrCode_Busy', 2},
+       {'E_S2CErrCode_OpToFrequency', 3},
+       {'E_S2CErrCode_ReLogin', 4},
+       {'E_S2CErrCode_NotLogin', 5},
+       {'E_S2CErrCode_LoginCheckTimeout', 6},
+       {'E_S2CErrCode_LoginCheckNotThrough', 7},
+       {'E_S2CErrCode_ErrArgs', 8},
+       {'E_S2CErrCode_ProtoErr', 9},
+       {'E_S2CErrCode_BeKicked', 11},
+       {'E_S2CErrCode_Gs_Maintenance', 12},
+       {'E_S2CErrCode_NotEnoughMoney', 100},
+       {'E_S2CErrCode_RoomNotExist', 101},
+       {'E_S2CErrCode_NotInRoom', 102},
+       {'E_S2CErrCode_OutOfLimit', 103},
+       {'E_S2CErrCode_CanNotBet', 104}]},
+     {{msg, 'Person'},
       [#field{name = name, fnum = 1, rnum = 2, type = string,
 	      occurrence = required, opts = []},
        #field{name = id, fnum = 2, rnum = 3, type = int32,
@@ -945,12 +2053,42 @@ get_msg_defs() ->
       [#field{name = num, fnum = 1, rnum = 2, type = uint32,
 	      occurrence = required, opts = []}]},
      {{msg, 'C2S_Heartbeat'}, []},
-     {{msg, 'S2C_Heartbeat'}, []}].
+     {{msg, 'S2C_Heartbeat'}, []},
+     {{msg, 'C2S_Register'},
+      [#field{name = use_name, fnum = 1, rnum = 2,
+	      type = string, occurrence = required, opts = []},
+       #field{name = password, fnum = 2, rnum = 3,
+	      type = string, occurrence = required, opts = []},
+       #field{name = phone_number, fnum = 3, rnum = 4,
+	      type = string, occurrence = required, opts = []}]},
+     {{msg, 'S2C_Register'},
+      [#field{name = code, fnum = 1, rnum = 2, type = uint32,
+	      occurrence = required, opts = []}]},
+     {{msg, 'C2S_Login'},
+      [#field{name = use_name, fnum = 1, rnum = 2,
+	      type = string, occurrence = required, opts = []},
+       #field{name = password, fnum = 2, rnum = 3,
+	      type = string, occurrence = required, opts = []}]},
+     {{msg, 'S2C_Login'},
+      [#field{name = use_name, fnum = 1, rnum = 2,
+	      type = string, occurrence = required, opts = []},
+       #field{name = money, fnum = 2, rnum = 3, type = uint64,
+	      occurrence = required, opts = []}]},
+     {{msg, 'S2C_Err'},
+      [#field{name = code, fnum = 1, rnum = 2,
+	      type = {enum, 'EnumS2CErrCode'}, occurrence = required,
+	      opts = []},
+       #field{name = type, fnum = 2, rnum = 3,
+	      type = {enum, 'EnumS2CErrShowType'},
+	      occurrence = required, opts = []},
+       #field{name = msg, fnum = 3, rnum = 4, type = string,
+	      occurrence = required, opts = []}]}].
 
 
 get_msg_names() ->
     ['Person', 'Struct_Num', 'C2S_Heartbeat',
-     'S2C_Heartbeat'].
+     'S2C_Heartbeat', 'C2S_Register', 'S2C_Register',
+     'C2S_Login', 'S2C_Login', 'S2C_Err'].
 
 
 get_group_names() -> [].
@@ -958,10 +2096,12 @@ get_group_names() -> [].
 
 get_msg_or_group_names() ->
     ['Person', 'Struct_Num', 'C2S_Heartbeat',
-     'S2C_Heartbeat'].
+     'S2C_Heartbeat', 'C2S_Register', 'S2C_Register',
+     'C2S_Login', 'S2C_Login', 'S2C_Err'].
 
 
-get_enum_names() -> [].
+get_enum_names() ->
+    ['EnumS2CErrShowType', 'EnumS2CErrCode'].
 
 
 fetch_msg_def(MsgName) ->
@@ -971,9 +2111,11 @@ fetch_msg_def(MsgName) ->
     end.
 
 
--spec fetch_enum_def(_) -> no_return().
 fetch_enum_def(EnumName) ->
-    erlang:error({no_such_enum, EnumName}).
+    case find_enum_def(EnumName) of
+      Es when is_list(Es) -> Es;
+      error -> erlang:error({no_such_enum, EnumName})
+    end.
 
 
 find_msg_def('Person') ->
@@ -991,21 +2133,149 @@ find_msg_def('Struct_Num') ->
 	    occurrence = required, opts = []}];
 find_msg_def('C2S_Heartbeat') -> [];
 find_msg_def('S2C_Heartbeat') -> [];
+find_msg_def('C2S_Register') ->
+    [#field{name = use_name, fnum = 1, rnum = 2,
+	    type = string, occurrence = required, opts = []},
+     #field{name = password, fnum = 2, rnum = 3,
+	    type = string, occurrence = required, opts = []},
+     #field{name = phone_number, fnum = 3, rnum = 4,
+	    type = string, occurrence = required, opts = []}];
+find_msg_def('S2C_Register') ->
+    [#field{name = code, fnum = 1, rnum = 2, type = uint32,
+	    occurrence = required, opts = []}];
+find_msg_def('C2S_Login') ->
+    [#field{name = use_name, fnum = 1, rnum = 2,
+	    type = string, occurrence = required, opts = []},
+     #field{name = password, fnum = 2, rnum = 3,
+	    type = string, occurrence = required, opts = []}];
+find_msg_def('S2C_Login') ->
+    [#field{name = use_name, fnum = 1, rnum = 2,
+	    type = string, occurrence = required, opts = []},
+     #field{name = money, fnum = 2, rnum = 3, type = uint64,
+	    occurrence = required, opts = []}];
+find_msg_def('S2C_Err') ->
+    [#field{name = code, fnum = 1, rnum = 2,
+	    type = {enum, 'EnumS2CErrCode'}, occurrence = required,
+	    opts = []},
+     #field{name = type, fnum = 2, rnum = 3,
+	    type = {enum, 'EnumS2CErrShowType'},
+	    occurrence = required, opts = []},
+     #field{name = msg, fnum = 3, rnum = 4, type = string,
+	    occurrence = required, opts = []}];
 find_msg_def(_) -> error.
 
 
+find_enum_def('EnumS2CErrShowType') ->
+    [{'E_S2CErrShowType_PopUp', 0}];
+find_enum_def('EnumS2CErrCode') ->
+    [{'E_S2CErrCode_Succ', 0}, {'E_S2CErrCode_Sys', 1},
+     {'E_S2CErrCode_Busy', 2},
+     {'E_S2CErrCode_OpToFrequency', 3},
+     {'E_S2CErrCode_ReLogin', 4},
+     {'E_S2CErrCode_NotLogin', 5},
+     {'E_S2CErrCode_LoginCheckTimeout', 6},
+     {'E_S2CErrCode_LoginCheckNotThrough', 7},
+     {'E_S2CErrCode_ErrArgs', 8},
+     {'E_S2CErrCode_ProtoErr', 9},
+     {'E_S2CErrCode_BeKicked', 11},
+     {'E_S2CErrCode_Gs_Maintenance', 12},
+     {'E_S2CErrCode_NotEnoughMoney', 100},
+     {'E_S2CErrCode_RoomNotExist', 101},
+     {'E_S2CErrCode_NotInRoom', 102},
+     {'E_S2CErrCode_OutOfLimit', 103},
+     {'E_S2CErrCode_CanNotBet', 104}];
 find_enum_def(_) -> error.
 
 
--spec enum_symbol_by_value(_, _) -> no_return().
-enum_symbol_by_value(E, V) ->
-    erlang:error({no_enum_defs, E, V}).
+enum_symbol_by_value('EnumS2CErrShowType', Value) ->
+    enum_symbol_by_value_EnumS2CErrShowType(Value);
+enum_symbol_by_value('EnumS2CErrCode', Value) ->
+    enum_symbol_by_value_EnumS2CErrCode(Value).
 
 
--spec enum_value_by_symbol(_, _) -> no_return().
-enum_value_by_symbol(E, V) ->
-    erlang:error({no_enum_defs, E, V}).
+enum_value_by_symbol('EnumS2CErrShowType', Sym) ->
+    enum_value_by_symbol_EnumS2CErrShowType(Sym);
+enum_value_by_symbol('EnumS2CErrCode', Sym) ->
+    enum_value_by_symbol_EnumS2CErrCode(Sym).
 
+
+enum_symbol_by_value_EnumS2CErrShowType(0) ->
+    'E_S2CErrShowType_PopUp'.
+
+
+enum_value_by_symbol_EnumS2CErrShowType('E_S2CErrShowType_PopUp') ->
+    0.
+
+enum_symbol_by_value_EnumS2CErrCode(0) ->
+    'E_S2CErrCode_Succ';
+enum_symbol_by_value_EnumS2CErrCode(1) ->
+    'E_S2CErrCode_Sys';
+enum_symbol_by_value_EnumS2CErrCode(2) ->
+    'E_S2CErrCode_Busy';
+enum_symbol_by_value_EnumS2CErrCode(3) ->
+    'E_S2CErrCode_OpToFrequency';
+enum_symbol_by_value_EnumS2CErrCode(4) ->
+    'E_S2CErrCode_ReLogin';
+enum_symbol_by_value_EnumS2CErrCode(5) ->
+    'E_S2CErrCode_NotLogin';
+enum_symbol_by_value_EnumS2CErrCode(6) ->
+    'E_S2CErrCode_LoginCheckTimeout';
+enum_symbol_by_value_EnumS2CErrCode(7) ->
+    'E_S2CErrCode_LoginCheckNotThrough';
+enum_symbol_by_value_EnumS2CErrCode(8) ->
+    'E_S2CErrCode_ErrArgs';
+enum_symbol_by_value_EnumS2CErrCode(9) ->
+    'E_S2CErrCode_ProtoErr';
+enum_symbol_by_value_EnumS2CErrCode(11) ->
+    'E_S2CErrCode_BeKicked';
+enum_symbol_by_value_EnumS2CErrCode(12) ->
+    'E_S2CErrCode_Gs_Maintenance';
+enum_symbol_by_value_EnumS2CErrCode(100) ->
+    'E_S2CErrCode_NotEnoughMoney';
+enum_symbol_by_value_EnumS2CErrCode(101) ->
+    'E_S2CErrCode_RoomNotExist';
+enum_symbol_by_value_EnumS2CErrCode(102) ->
+    'E_S2CErrCode_NotInRoom';
+enum_symbol_by_value_EnumS2CErrCode(103) ->
+    'E_S2CErrCode_OutOfLimit';
+enum_symbol_by_value_EnumS2CErrCode(104) ->
+    'E_S2CErrCode_CanNotBet'.
+
+
+enum_value_by_symbol_EnumS2CErrCode('E_S2CErrCode_Succ') ->
+    0;
+enum_value_by_symbol_EnumS2CErrCode('E_S2CErrCode_Sys') ->
+    1;
+enum_value_by_symbol_EnumS2CErrCode('E_S2CErrCode_Busy') ->
+    2;
+enum_value_by_symbol_EnumS2CErrCode('E_S2CErrCode_OpToFrequency') ->
+    3;
+enum_value_by_symbol_EnumS2CErrCode('E_S2CErrCode_ReLogin') ->
+    4;
+enum_value_by_symbol_EnumS2CErrCode('E_S2CErrCode_NotLogin') ->
+    5;
+enum_value_by_symbol_EnumS2CErrCode('E_S2CErrCode_LoginCheckTimeout') ->
+    6;
+enum_value_by_symbol_EnumS2CErrCode('E_S2CErrCode_LoginCheckNotThrough') ->
+    7;
+enum_value_by_symbol_EnumS2CErrCode('E_S2CErrCode_ErrArgs') ->
+    8;
+enum_value_by_symbol_EnumS2CErrCode('E_S2CErrCode_ProtoErr') ->
+    9;
+enum_value_by_symbol_EnumS2CErrCode('E_S2CErrCode_BeKicked') ->
+    11;
+enum_value_by_symbol_EnumS2CErrCode('E_S2CErrCode_Gs_Maintenance') ->
+    12;
+enum_value_by_symbol_EnumS2CErrCode('E_S2CErrCode_NotEnoughMoney') ->
+    100;
+enum_value_by_symbol_EnumS2CErrCode('E_S2CErrCode_RoomNotExist') ->
+    101;
+enum_value_by_symbol_EnumS2CErrCode('E_S2CErrCode_NotInRoom') ->
+    102;
+enum_value_by_symbol_EnumS2CErrCode('E_S2CErrCode_OutOfLimit') ->
+    103;
+enum_value_by_symbol_EnumS2CErrCode('E_S2CErrCode_CanNotBet') ->
+    104.
 
 
 get_service_names() -> [].

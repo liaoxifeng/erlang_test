@@ -30,6 +30,7 @@ start_link(Args) ->
 %%%===================================================================
 
 init([Config]) ->
+    ets:new(?ets_mqtt_call, [set, named_table, public, {keypos, 1}, {read_concurrency, true}]),
     {ok, Client} = emqttc:start_link(Config),
     {ok, Topic} = application:get_env(erlang_test, s2c_topic),
     emqttc:subscribe(Client, Topic, 2),
@@ -42,7 +43,12 @@ handle_cast(_Request, State) ->
     {noreply, State}.
 
 handle_info({publish, <<"s2c_foo">>, Binary}, State) ->
-    ?INF("receive ~p", [Binary]),
+    Binary1 = jsx:decode(Binary),
+    ?INF("receive ~p", [Binary1]),
+    #{<<"tag">> := Tag} = Binary2 = maps:from_list(Binary1),
+    [{_, Pid}] = ets:lookup(?ets_mqtt_call, Tag),
+    Pid ! {async_msg, Binary2},
+
     {noreply, State};
 
 handle_info({mqttc, _Pid, connected}, State) ->

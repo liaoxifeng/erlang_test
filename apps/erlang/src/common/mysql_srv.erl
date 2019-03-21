@@ -32,17 +32,17 @@ start_link() ->
 %%%===================================================================
 
 init([]) ->
+    {ok, Config} = application:get_env(erlang_test, mysql),
+    #{host := Host, account := Account, password := Password,
+        db := Db, topic := Topic} = maps:from_list(Config),
 
-    {ok, MysqlConfig} = application:get_env(erlang_test, mysql),
-    #{host := Host, account := Account,
-        password := Password, db := Db, topic := Topic} = maps:from_list(MysqlConfig),
     case mysql:start_link(Topic, Host, 3306, Account, Password, Db, fun log/4) of
         {ok, _} ->
             ?INF("mysql start success");
         _ ->
             ?ERR("mysql start failure")
     end,
-    {ok, #{}}.
+    {ok, #{account => Account, password => Password, db => Db, topic => Topic}}.
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.

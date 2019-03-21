@@ -15,7 +15,7 @@
 -author("feng.liao").
 
 %% API
--export([encode_msg/2, encode_msg/3, decode_msg/1]).
+-export([encode_msg/2, encode_msg/3, decode_msg/1, encode_err/1]).
 
 %% 打包协议
 encode_msg(PtMod, Msg) -> encode_msg(PtMod, Msg, []).
@@ -37,3 +37,29 @@ decode_msg(<<Len:32/little, NameLen:8, NameBin:NameLen/binary, LeftBin/binary>>)
     PtMod = list_to_atom(PtModStr),
     MsgName = list_to_atom(MsgNameStr),
     {PtMod:decode_msg(Body, MsgName), OtherBin}.
+
+%% 打包错误码协议
+-spec encode_err(pt_common:'EnumS2CErrCode'()) -> binary().
+encode_err(Code) ->
+    encode_err(Code, 'E_S2CErrShowType_PopUp').
+
+-spec encode_err(
+        pt_common:'EnumS2CErrCode'(),
+        pt_common:'EnumS2CErrShowType'()) ->
+    binary().
+encode_err(Code, ShowType) ->
+    Msg = cfg_s2c_err:get_msg(Code),
+    encode_err(Code, ShowType, Msg).
+
+-spec encode_err(
+        pt_common:'EnumS2CErrCode'(),
+        pt_common:'EnumS2CErrShowType'(),
+        iolist()) ->
+    binary().
+encode_err(Code, Type, Msg) ->
+    PackMsg = #'S2C_Err'{
+        code = Code,
+        type = Type,
+        msg = Msg
+    },
+    encode_msg(pt_common, PackMsg).

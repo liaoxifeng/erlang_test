@@ -32,11 +32,9 @@ init([Id], _ConnState) ->
     {ok, #{id => Id}}.
 
 websocket_handle({text, Msg}, _ConnState, State) ->
-    ?PRINT("Received msg ~p", [Msg]),
     timer:sleep(1000),
     BinInt = list_to_binary(integer_to_list(State)),
     Reply = {text, <<"hello, this is message #", BinInt/binary >>},
-    ?PRINT("Replying: ~p", [Reply]),
     {reply, Reply, State};
 
 
@@ -45,7 +43,7 @@ websocket_handle({binary, Msg}, _ConnState, State) ->
     case GetMsg of
 
         #'S2C_Heartbeat'{} ->
-            ?PRINT("S2C_Heartbeat");
+            ignore;
         _ ->
             ?PRINT("用户获得的信息: ~p", [GetMsg])
     end,
@@ -56,10 +54,7 @@ websocket_info({binary, MsgBin}, _ConnState, State) ->
 
 websocket_info({binary, heart, MsgBin}, _ConnState, State) ->
     erlang:send_after(25000, self(),{binary, heart, MsgBin}),
-    {reply, {binary, MsgBin}, State};
-
-websocket_info(start, _ConnState, State) ->
-    {reply, {text, <<"erlang message received">>}, State}.
+    {reply, {binary, MsgBin}, State}.
 
 websocket_terminate(Reason, _ConnState, State) ->
     ?PRINT("Websocket closed in state ~p wih reason ~p", [State, Reason]),
