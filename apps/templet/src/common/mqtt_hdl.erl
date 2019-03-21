@@ -18,7 +18,7 @@ call(CmdContent) ->
     call(CmdContent, 5000).
 
 call(CmdContent, 5000) ->
-    {ok, Topic} = application:get_env(erlang_test, c2s_topic),
+    {ok, Topic} = application:get_env(templet, c2s_topic),
     Tag = util:unixtime_microsecond(),
     ets:insert(?ets_mqtt_call, {Tag, self()}),
     CmdBinary = jsx:encode([{tag, Tag}|CmdContent]),
@@ -33,7 +33,7 @@ call(CmdContent, 5000) ->
     end.
 
 publish(CmdBinary) ->
-    {ok, Topic} = application:get_env(erlang_test, c2s_topic),
+    {ok, Topic} = application:get_env(templet, c2s_topic),
     emqttc:publish(whereis(publisher), Topic, CmdBinary, [{qos, 2}]).
 
 publish(Topic, CmdBinary) ->

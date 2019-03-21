@@ -1,5 +1,5 @@
 [
-    {erlang_test, [
+    {templet, [
         {port, ${LISTEN_PORT}},
         {c2s_topic, <<"${C2S_TOPIC}">>},
         {s2c_topic, <<"${S2C_TOPIC}">>},
@@ -37,8 +37,8 @@
 
     {fs, [
         {backwards_compatible, true},
-        {path, "apps/erlang/src/cfg"},
-        {include_path, "apps/erlang/include"}
+        {path, "apps/templet/src/cfg"},
+        {include_path, "apps/templet/include"}
     ]},
 
     {sasl, [

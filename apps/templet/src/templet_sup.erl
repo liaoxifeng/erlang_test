@@ -1,9 +1,9 @@
 %%%-------------------------------------------------------------------
-%% @doc erlang top level supervisor.
+%% @doc templet top level supervisor.
 %% @end
 %%%-------------------------------------------------------------------
 
--module(erlang_sup).
+-module(templet_sup).
 
 -behaviour(supervisor).
 
@@ -37,10 +37,10 @@ start_link() ->
 %% Before OTP 18 tuples must be used to specify a child. e.g.
 %% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
 init([]) ->
-    {ok, MqttConfig} = application:get_env(erlang_test, emqttc),
+    {ok, MqttConfig} = application:get_env(templet, emqttc),
     {ok, { {one_for_all, 10, 10},
         [
-            ?CHILD(erlang_init, worker),
+            ?CHILD(templet_init, worker),
             ?CHILD(mysql_srv, worker),
             ?CHILD(mqtt_publisher, worker, MqttConfig),
             ?CHILD(db_srv, worker, MqttConfig),

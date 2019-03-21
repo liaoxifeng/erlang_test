@@ -1,8 +1,8 @@
-{application, erlang,
+{application, templet,
  [{description, "An OTP application"},
   {vsn, "0.1.0"},
   {registered, []},
-  {mod, { erlang_app, []}},
+  {mod, {templet_app, []}},
   {applications,
    [kernel,
     stdlib

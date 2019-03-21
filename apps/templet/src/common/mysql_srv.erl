@@ -4,10 +4,10 @@
 %%% @doc
 %%%
 %%% @end
-%%% Created : 11. 三月 2019 下午4:41
+%%% Created : 16. 三月 2019 上午10:02
 %%%-------------------------------------------------------------------
 
--module(erlang_init).
+-module(mysql_srv).
 -author("feng.liao").
 
 -include("common.hrl").
@@ -15,7 +15,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0]).
+-export([start_link/0, log/4]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -32,9 +32,17 @@ start_link() ->
 %%%===================================================================
 
 init([]) ->
-    mnesia_mylib:init(),
-    cfg_loader:start(),
-    {ok, #{}}.
+    {ok, Config} = application:get_env(templet, mysql),
+    #{host := Host, account := Account, password := Password,
+        db := Db, topic := Topic} = maps:from_list(Config),
+
+    case mysql:start_link(Topic, Host, 3306, Account, Password, Db, fun log/4) of
+        {ok, _} ->
+            ?INF("mysql start success");
+        _ ->
+            ?ERR("mysql start failure")
+    end,
+    {ok, #{account => Account, password => Password, db => Db, topic => Topic}}.
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
@@ -54,3 +62,14 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+
+%% 去除不必要的打印信息
+%% 增加一个log函数，只容许error级别的打印，其他的都不打了。
+log(Module, Line, Level, FormatFun) ->
+    case Level of
+        error ->
+            {Format, Arguments} = FormatFun(),
+            io:format("~w:~b: "++ Format ++ "~n", [Module, Line] ++ Arguments);
+        _ ->
+            ok
+    end.

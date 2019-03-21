@@ -1,8 +1,8 @@
 #!/bin/bash
 
 LOCAL_HOST=192.168.1.36
-export NODE_NAME="erlang_test@$LOCAL_HOST"
-export SETCOOKIE=erlang_test
+export NODE_NAME="templet@$LOCAL_HOST"
+export SETCOOKIE=templet
 export LISTEN_PORT=30000
 
 # mysql
@@ -39,7 +39,7 @@ live(){
     ERL_FLAGS=" -args_file $VM_ARGS" rebar3 shell \
         --config "$SYS_CONFIG" \
         --name ${NODE_NAME} --setcookie ${SETCOOKIE} \
-        --apps ssl,ranch,cowlib,mysql,crypto,cowboy,compiler,syntax_tools,sync,fs,erlang,robot,mnesia
+        --apps ssl,ranch,cowlib,mysql,crypto,cowboy,compiler,syntax_tools,sync,fs,templet,robot,mnesia
 }
 
 # Replace environment variables

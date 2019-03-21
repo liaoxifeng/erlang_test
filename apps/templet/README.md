@@ -1,4 +1,4 @@
-erlang
+templet
 =====
 
 An OTP application

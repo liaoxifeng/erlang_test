@@ -1,9 +1,9 @@
 %%%-------------------------------------------------------------------
-%% @doc erlang public API
+%% @doc templet public API
 %% @end
 %%%-------------------------------------------------------------------
 
--module(erlang_app).
+-module(templet_app).
 -include("common.hrl").
 -behaviour(application).
 
@@ -20,16 +20,16 @@ start(_StartType, _StartArgs) ->
             {"/", test_ws_handler, []},
 
             %% for test
-            {"/home", cowboy_static, {priv_file, erlang, "index.html"}},
-            {"/static/[...]", cowboy_static, {priv_dir, erlang, "static"}}
+            {"/home", cowboy_static, {priv_file, templet, "index.html"}},
+            {"/static/[...]", cowboy_static, {priv_dir, templet, "static"}}
         ]}
     ]),
-    {ok, Port} = application:get_env(erlang_test, port),
+    {ok, Port} = application:get_env(templet, port),
     ?INF("cowboy listen [~p]",[Port]),
     {ok, _} = cowboy:start_clear(http, [{port, Port}], #{
         env => #{dispatch => Dispatch}
     }),
-    erlang_sup:start_link().
+    templet_sup:start_link().
 
 %%--------------------------------------------------------------------
 stop(_State) ->
