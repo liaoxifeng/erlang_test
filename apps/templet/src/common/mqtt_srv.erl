@@ -44,7 +44,6 @@ handle_cast(_Request, State) ->
 
 handle_info({publish, <<"s2c_foo">>, Binary}, State) ->
     Binary1 = jsx:decode(Binary),
-    ?INF("receive ~p", [Binary1]),
     #{<<"tag">> := Tag} = Binary2 = maps:from_list(Binary1),
     [{_, Pid}] = ets:lookup(?ets_mqtt_call, Tag),
     Pid ! {async_msg, Binary2},

@@ -65,6 +65,7 @@ handle_info({_Pid, {fs, file_event}, {Path, Flags}}, #{include := Include} = Sta
                     {ok, Module, Binary, _Warnings} =
                         compile:file(Path, [binary, return, {i, [Include]}]),
                     code:load_binary(Module, Path, Binary),
+                    ?INF("reload ~p", [Path]),
                     ok
             end;
         _ ->

@@ -21,7 +21,7 @@
 
 init(Req, _Opts) ->
     Ip = http:get_real_ip(Req),
-    ?INF("connet success ~p", [Ip]),
+    ?INF("~p connet success", [Ip]),
     State = #{ip => Ip},
     {cowboy_websocket, Req, State}.
 
@@ -29,7 +29,8 @@ websocket_init(State) ->
     {ok, State}.
 
 websocket_handle({text, Msg}, State) ->
-    {reply, {text, << "That's what she said! ", Msg/binary >>}, State};
+    ReplyBin = web_test:dispatch(Msg),
+    {reply, {text, << ReplyBin/binary >>}, State};
 
 websocket_handle({binary, MsgBin}, State) ->
     {Msg, _} = pt:decode_msg(MsgBin),

@@ -19,6 +19,7 @@ get_real_ip(#{headers := #{<<"x-forwarded-for">> := Bin}}) ->
     [H|_] = string:tokens(binary_to_list(Bin), ","),
     {ok, Ip} = inet:parse_address(H),
     list_to_binary(inet:ntoa(Ip));
+
 get_real_ip(Req) ->
     {Ip, _} = cowboy_req:peer(Req),
     list_to_binary(inet:ntoa(Ip)).
