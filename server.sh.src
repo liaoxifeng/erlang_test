@@ -4,6 +4,9 @@ LOCAL_HOST=192.168.1.36
 export NODE_NAME="templet@$LOCAL_HOST"
 export SETCOOKIE=templet
 export LISTEN_PORT=30000
+export SERVER_ID=1
+export C2S_TOPIC=c2s_foo
+export S2C_TOPIC=s2c_foo
 
 # mysql
 export MYSQL_HOST=localhost
@@ -39,7 +42,7 @@ live(){
     ERL_FLAGS=" -args_file $VM_ARGS" rebar3 shell \
         --config "$SYS_CONFIG" \
         --name ${NODE_NAME} --setcookie ${SETCOOKIE} \
-        --apps ssl,ranch,cowlib,mysql,crypto,cowboy,compiler,syntax_tools,sync,fs,templet,robot,mnesia
+        --apps sasl,ranch,mysql,cowboy,emqttc,lager,sync,fs,templet,mnesia
 }
 
 # Replace environment variables

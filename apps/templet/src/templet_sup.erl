@@ -44,13 +44,9 @@ init([]) ->
             ?CHILD(mysql_srv, worker),
             ?CHILD(mqtt_publisher, worker, MqttConfig),
             ?CHILD(db_srv, worker, MqttConfig),
-            ?CHILD(mqtt_srv, worker, MqttConfig)
-%%
+            ?CHILD(mqtt_srv, worker, MqttConfig),
             %% for test
-            %% ?CHILD(block_server_sup, supervisor),
-            %% ?CHILD(block_client_sup, supervisor),
-            %% ?CHILD(statem_test, worker),
-%%           ?CHILD(test_mgr, worker)
+            ?CHILD(test_mgr, worker)
 
         ]} }.
 

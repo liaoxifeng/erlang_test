@@ -17,36 +17,24 @@
 -behaviour(gen_server).
 
 %% API
--export([
-    start_link/0,
-    publish/0,
-    ppublish/0]).
+-export([start_link/0, publish/0, ppublish/0]).
 
 %% gen_server callbacks
--export([init/1,
-    handle_call/3,
-    handle_cast/2,
-    handle_info/2,
-    terminate/2,
-    code_change/3]).
-
--define(SERVER, ?MODULE).
-
--record(state, {}).
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 %%%===================================================================
 %%% API
 %%%===================================================================
 
 start_link() ->
-    gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
 
 init([]) ->
-    {ok, #state{}}.
+    {ok, #{}}.
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
@@ -54,7 +42,8 @@ handle_call(_Request, _From, State) ->
 handle_cast(_Request, State) ->
     {noreply, State}.
 
-handle_info(_Info, State) ->
+handle_info(Info, State) ->
+    ?PRINT("~p", [Info]),
     {noreply, State}.
 
 terminate(_Reason, _State) ->
@@ -183,3 +172,19 @@ fs_test() ->
     fs:start_link(fs_watcher),
     fs:subscribe(fs_watcher),
     fs:known_events(fs_watcher).
+
+statem_event_test() ->
+    {ok, Pid} = statem_event_test:start_link(),
+    ?PRINT("Pid ~p", [Pid]),
+    gen_statem:cast(Pid, player_hdl),
+    gen_statem:call(Pid, player_hdl, 5000),
+    gen_statem:reply({self(), tag}, "hello srv").
+
+statem_state_test() ->
+    {ok, Pid} = statem_state_test:start_link(),
+    ?PRINT("Pid ~p", [Pid]),
+    gen_statem:call(Pid, push),
+    gen_statem:call(Pid, get_count),
+    gen_statem:call(Pid, push),
+    gen_statem:call(Pid, get_count),
+    gen_statem:stop(Pid).
