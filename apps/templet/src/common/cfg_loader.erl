@@ -9,8 +9,10 @@
 
 -module(cfg_loader).
 -author("feng.liao").
--include("common.hrl").
+
 -behaviour(gen_server).
+
+-include("common.hrl").
 
 %% API
 -export([start_link/1,start/0]).

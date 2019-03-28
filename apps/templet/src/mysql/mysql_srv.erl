@@ -15,7 +15,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0, log/4]).
+-export([start_link/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -24,25 +24,25 @@
 %%% API
 %%%===================================================================
 
-start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+start_link(Args) ->
+    gen_server:start_link(?MODULE, [Args], []).
 
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
 
-init([]) ->
-    {ok, Config} = application:get_env(templet, mysql),
-    #{host := Host, account := Account, password := Password,
-        db := Db, topic := Topic} = maps:from_list(Config),
+init([Args]) ->
+    Hostname = proplists:get_value(hostname, Args),
+    Database = proplists:get_value(database, Args),
+    Username = proplists:get_value(username, Args),
+    Password = proplists:get_value(password, Args ),
+    mysql:connect(mysql_pool, Hostname, undefined, Username, Password, Database, true),
+    ?INF("add into mysql_pool"),
+    {ok, #{user_name => Username, password => Password, db => Database}}.
 
-    case mysql:start_link(Topic, Host, 3306, Account, Password, Db, fun log/4) of
-        {ok, _} ->
-            ?INF("mysql start success");
-        _ ->
-            ?ERR("mysql start failure")
-    end,
-    {ok, #{account => Account, password => Password, db => Db, topic => Topic}}.
+handle_call({publish, Publish, Binary}, _From, State) ->
+    Reply = db_lib:hdl(Binary, Publish),
+    {reply, {ok, Reply}, State};
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
@@ -62,14 +62,3 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-
-%% 去除不必要的打印信息
-%% 增加一个log函数，只容许error级别的打印，其他的都不打了。
-log(Module, Line, Level, FormatFun) ->
-    case Level of
-        error ->
-            {Format, Arguments} = FormatFun(),
-            io:format("~w:~b: "++ Format ++ "~n", [Module, Line] ++ Arguments);
-        _ ->
-            ok
-    end.

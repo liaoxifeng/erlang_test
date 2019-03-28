@@ -31,7 +31,7 @@ init([Id], _ConnState) ->
     erlang:send_after(25000, self(),{binary, heart, pt:encode_msg(pt_common, #'C2S_Heartbeat'{})}),
     {ok, #{id => Id}}.
 
-websocket_handle({text, Msg}, _ConnState, State) ->
+websocket_handle({text, _Msg}, _ConnState, State) ->
     timer:sleep(1000),
     BinInt = list_to_binary(integer_to_list(State)),
     Reply = {text, <<"hello, this is message #", BinInt/binary >>},

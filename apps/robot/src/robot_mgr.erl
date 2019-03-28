@@ -14,7 +14,7 @@
 
 -behaviour(gen_server).
 
--export([start_link/0, get_count/0, start/0, send/0]).
+-export([start_link/0, get_count/0, start/1, send/1]).
 
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
@@ -56,14 +56,14 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
-start() ->
-    {ok, Pid} = robot:start_link(1),
-    Register = #'C2S_Register'{use_name = <<"feng">>, password = <<"passord">>, phone_number = <<"15172407849">>},
+start(Id) ->
+    {ok, Pid} = robot:start_link(Id),
+    Register = #'C2S_Register'{use_name = <<"feng1">>, password = <<"234567">>, phone_number = <<"15172407849">>},
     Pid ! {binary, pt:encode_msg(pt_common, Register)}.
 
 %%
-send() ->
-    {ok, Pid} = robot:start_link(1),
+send(Id) ->
+    {ok, Pid} = robot:start_link(Id),
     Msg = #'C2S_Login'{use_name = <<"feng">>, password = <<"passord">>},
     Pid ! {binary, pt:encode_msg(pt_common, Msg)}.
 

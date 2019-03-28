@@ -12,13 +12,26 @@
                 {topic,    "${REDIS_TOPIC}"}
             ]},
 
-        {mysql, [
-                {host,     "${MYSQL_HOST}"},
-                {account,  "${MYSQL_ACCOUNT}"},
+        {mysql_pool, {[
+                    {size, 16},
+                    {max_overflow, 0}
+                ],[
+                {hostname, "${MYSQL_HOST}"},
+                {username, "${MYSQL_ACCOUNT}"},
                 {password, "${MYSQL_PASSWORD}"},
-                {db,       "${MYSQL_DB}"},
-                {topic,    "${MYSQL_TOPIC}"}
-            ]},
+                {database, "${MYSQL_DB}"}
+            ]}},
+
+        {rabbitmq_pool, {
+            [
+                {size, 16},
+                {max_overflow, 0}
+        	], [
+        	    {username, <<"feng">>},
+        	    {password, <<"feng">>},
+                {host, "127.0.0.1"},
+                {port, 5672}
+            ]}},
 
         {emqttc, [
                 {host, "${MQTT_HOST}"},

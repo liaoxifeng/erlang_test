@@ -11,7 +11,7 @@
 
 
 -define(ets_mqtt_call, ets_mqtt_call).
-
+-define(ets_global, ets_global).
 
 
 %% 订单号

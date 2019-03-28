@@ -10,7 +10,7 @@
 -module(db_lib).
 -include("proto_bo.hrl").
 -include("common.hrl").
--define(db_topic, "feng_foo").
+-define(db_topic, mysql_pool).
 
 -author("feng.liao").
 
@@ -19,9 +19,9 @@
     insert/1,
     delete/0,
     select/1,
-    db_hdl/2]).
+    hdl/2]).
 
-db_hdl(#{<<"cmd">> := ?register_g2b, <<"tag">> := Tag, <<"user_name">> := UserName,
+hdl(#{<<"cmd">> := ?register_g2b, <<"tag">> := Tag, <<"user_name">> := UserName,
     <<"password">> := Password, <<"phone_number">> := PhoneNumber},
         Topic) ->
 
@@ -31,7 +31,7 @@ db_hdl(#{<<"cmd">> := ?register_g2b, <<"tag">> := Tag, <<"user_name">> := UserNa
     CmdBinary = jsx:encode([{cmd, ?register_b2g}, {tag, Tag}, Code]),
     mqtt_hdl:publish(Topic, CmdBinary);
 
-db_hdl(#{<<"cmd">> := ?login_g2b, <<"tag">> := Tag, <<"user_name">> := UserName, <<"password">> := Password},
+hdl(#{<<"cmd">> := ?login_g2b, <<"tag">> := Tag, <<"user_name">> := UserName, <<"password">> := Password},
         Topic) ->
     Binary = format_sql("select * from user_info where user_name = '~s' and password = '~s';",
         [UserName, Password]),
@@ -45,7 +45,7 @@ db_hdl(#{<<"cmd">> := ?login_g2b, <<"tag">> := Tag, <<"user_name">> := UserName,
     CmdBinary = jsx:encode(CmdContent),
     mqtt_hdl:publish(Topic, CmdBinary);
 
-db_hdl(#{<<"cmd">> := ?login_g2b}, Topic) ->
+hdl(#{<<"cmd">> := ?login_g2b}, _Topic) ->
     mqtt_hdl:publish(<<"s2c_foo">>),
     ok.
 

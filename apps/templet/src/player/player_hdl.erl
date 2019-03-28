@@ -27,8 +27,8 @@
 on_terminate(_Reason, _State) ->
     ok.
 
-on_ws_terminate(_State, _Pid) ->
-    ok.
+on_ws_terminate(State, _Pid) ->
+    {noreply, State}.
 
 register(#'C2S_Register'{use_name = UserName, password = Password, phone_number = PhoneNumber}) ->
     CmdContent = [{cmd, ?register_g2b},
@@ -49,7 +49,7 @@ login(#'C2S_Login'{use_name = UserName, password = Password}) ->
         {ok, #{<<"code">> := 0, <<"user_id">> := UserId, <<"money">> := Money}} ->
             {UserId, UserName, Money};
         _E ->
-            ?ERR("~p", [_E]),
+            ?WRN("login request timeout"),
             _E
     end.
 
