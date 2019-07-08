@@ -43,7 +43,7 @@ handle_cast(_Request, State) ->
     {noreply, State}.
 
 handle_info(Info, State) ->
-    ?PRINT("~p", [Info]),
+    ?print("~p", [Info]),
     {noreply, State}.
 
 terminate(_Reason, _State) ->
@@ -67,9 +67,9 @@ redis_test() ->
     {ok, Client} = eredis:start_link(Host, Port, Db, Password),
 
     {ok, SetResult} = eredis:q(Client, ["SET", Topic, bar]),
-    ?PRINT("SetResult ~p", [SetResult]),
+    ?print("SetResult ~p", [SetResult]),
     {ok, GetResult} = eredis:q(Client, ["GET", Topic]),
-    ?PRINT("GetResult ~p", [GetResult]),
+    ?print("GetResult ~p", [GetResult]),
     eredis:q(Client, ["DEL", Topic]),
 
     ?assertEqual({ok, undefined}, eredis:q(Client, ["GET", Topic])),
@@ -115,7 +115,7 @@ ppublish() ->
 receiver(Sub) ->
     receive
         Msg ->
-            ?PRINT("received ~p", [Msg]),
+            ?print("received ~p", [Msg]),
             eredis_sub:ack_message(Sub),
             receiver(Sub)
     end.
@@ -144,15 +144,15 @@ mysql_test() ->
     {ok, _} = mysql:start_link(Topic, Host, Account, Password, Db),
 
     {data, MySqlRes}  = mysql:fetch(Topic, <<"select * from test">>),
-    ?PRINT("QueryResult ~p", [MySqlRes]),
+    ?print("QueryResult ~p", [MySqlRes]),
 
     %% 获取字段名称信息
     FieldInfo = mysql:get_result_field_info(MySqlRes),
-    ?PRINT("FieldInfo ~p", [FieldInfo]),
+    ?print("FieldInfo ~p", [FieldInfo]),
 
     %% 获取字段值
     AllRows = mysql:get_result_rows(MySqlRes),
-    ?PRINT("AllRows ~p", [AllRows]),
+    ?print("AllRows ~p", [AllRows]),
 
     mysql:fetch(Topic, <<"DELETE FROM test where userid = 'feng'">>),
 
@@ -175,14 +175,14 @@ fs_test() ->
 
 statem_event_test() ->
     {ok, Pid} = statem_event_test:start_link(),
-    ?PRINT("Pid ~p", [Pid]),
+    ?print("Pid ~p", [Pid]),
     gen_statem:cast(Pid, player_hdl),
     gen_statem:call(Pid, player_hdl, 5000),
     gen_statem:reply({self(), tag}, "hello srv").
 
 statem_state_test() ->
     {ok, Pid} = statem_state_test:start_link(),
-    ?PRINT("Pid ~p", [Pid]),
+    ?print("Pid ~p", [Pid]),
     gen_statem:call(Pid, push),
     gen_statem:call(Pid, get_count),
     gen_statem:call(Pid, push),

@@ -56,19 +56,19 @@ handle_info({publish, <<"c2s_foo">>, Binary}, State) ->
                     %% 先释放到 rabbitmq_pool
                     poolboy:checkin(mysql_pool, C);
                 _ ->
-                    ?ERR("update db failture")
+                    ?error("update db failture")
             end;
         _E ->
-            ?WRN("~p", [_E])
+            ?warning("~p", [_E])
     end,
     {noreply, State};
 
 handle_info({mqttc, _Pid, connected}, State) ->
-    ?INF("mqtt operator connected"),
+    ?info("mqtt operator connected"),
     {noreply, State};
 
 handle_info(Info, State) ->
-    ?ERR("~p", [Info]),
+    ?error("~p", [Info]),
     {noreply, State}.
 
 terminate(_Reason, _State) ->

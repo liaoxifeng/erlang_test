@@ -37,7 +37,7 @@ init([Args]) ->
     Username = proplists:get_value(username, Args),
     Password = proplists:get_value(password, Args ),
     mysql:connect(mysql_pool, Hostname, undefined, Username, Password, Database, true),
-    ?INF("add into mysql_pool"),
+    ?info("add into mysql_pool"),
     {ok, #{user_name => Username, password => Password, db => Database}}.
 
 handle_call({publish, Publish, Binary}, _From, State) ->

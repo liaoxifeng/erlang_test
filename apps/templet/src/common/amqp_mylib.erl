@@ -33,7 +33,7 @@
 %%            ok;
 %%
 %%        {error, _Reason} ->
-%%%%                    ?PRINT("~p", [_Reason]),
+%%%%                    ?print("~p", [_Reason]),
 %%            Key = util:unixtime_microsecond(),
 %%            R = #mn_to_rmq{key = Key, value = Value, exchange = Exchange},
 %%            mnesia:dirty_write(R)
@@ -58,11 +58,11 @@
 %%                            ok;
 %%
 %%                        Reason ->
-%%%%                            ?PRINT("Reason:~p", [Reason]),
+%%%%                            ?print("Reason:~p", [Reason]),
 %%                            {error, Reason}
 %%
 %%                    after 1000 ->
-%%%%                        ?PRINT("~p timeout", [ConfirmId]),
+%%%%                        ?print("~p timeout", [ConfirmId]),
 %%                        {error, {ack, timeout}}
 %%                    end;
 %%

@@ -49,7 +49,7 @@ login(#'C2S_Login'{use_name = UserName, password = Password}) ->
         {ok, #{<<"code">> := 0, <<"user_id">> := UserId, <<"money">> := Money}} ->
             {UserId, UserName, Money};
         _E ->
-            ?WRN("login request timeout"),
+            ?warning("login request timeout"),
             _E
     end.
 

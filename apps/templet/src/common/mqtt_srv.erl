@@ -51,11 +51,11 @@ handle_info({publish, <<"s2c_foo">>, Binary}, State) ->
     {noreply, State};
 
 handle_info({mqttc, _Pid, connected}, State) ->
-    ?INF("mqtt_srv connected"),
+    ?info("mqtt_srv connected"),
     {noreply, State};
 
 handle_info(Info, State) ->
-    ?ERR("~p", [Info]),
+    ?error("~p", [Info]),
     {noreply, State}.
 
 terminate(_Reason, _State) ->

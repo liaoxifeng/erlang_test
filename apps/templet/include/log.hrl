@@ -9,26 +9,19 @@
 -ifndef(__log_hrl__).
 -define(__log_hrl__, true).
 
--define(DBG(Fmt), lager:debug([], Fmt, [])).
--define(DBG(Fmt, Args), lager:debug([], Fmt, Args)).
+-define(debug(Fmt), lager:debug([], Fmt, [])).
+-define(debug(Fmt, Args), lager:debug([], Fmt, Args)).
 
--define(INF(Fmt), lager:info([], Fmt, [])).
--define(INF(Fmt, Args), lager:info([], Fmt, Args)).
+-define(info(Fmt), lager:info([], Fmt, [])).
+-define(info(Fmt, Args), lager:info([], Fmt, Args)).
 
--define(WRN(Fmt), lager:warning([], Fmt, [])).
--define(WRN(Fmt, Args), lager:warning([], Fmt, Args)).
+-define(warning(Fmt), lager:warning([], Fmt, [])).
+-define(warning(Fmt, Args), lager:warning([], Fmt, Args)).
 
--define(ERR(Fmt), lager:error([], Fmt, [])).
--define(ERR(Fmt, Args), lager:error([], Fmt, Args)).
+-define(error(Fmt), lager:error([], Fmt, [])).
+-define(error(Fmt, Args), lager:error([], Fmt, Args)).
 
-%% ClassReason :: {atom(), term()}
--define(ERR_ST(Fmt, Args, ClassReason),
-    lager:error(
-        [],
-        Fmt ++ "~nStacktrace:~s",
-        Args ++ [lager:pr_stacktrace(erlang:get_stacktrace(), ClassReason)])).
-
--define(PRINT(Fmt), io:format("~w:~w| " ++ Fmt ++ "~n", [?MODULE, ?LINE])).
--define(PRINT(Fmt, Args), io:format("~w:~w| " ++ Fmt ++ "~n", [?MODULE, ?LINE|Args])).
+-define(print(Fmt), io:format("~w:~w| " ++ Fmt ++ "~n", [?MODULE, ?LINE])).
+-define(print(Fmt, Args), io:format("~w:~w| " ++ Fmt ++ "~n", [?MODULE, ?LINE|Args])).
 
 -endif.

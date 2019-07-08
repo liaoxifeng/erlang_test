@@ -37,7 +37,7 @@ start_link(Args) ->
 init([_]) ->
     process_flag(trap_exit, true),
 
-    ?PRINT("pid=~p", [self()]),
+    ?print("pid=~p", [self()]),
     State = #{chan_msg_id => 1, max_confirmed_msg_id => 0, wait_confirm => #{}},
     State1 = reset_chan(State),
     {ok, State1}.
@@ -57,15 +57,15 @@ handle_call({publish, Publish, Content}, From, #{chan := Channel} = State) ->
             {reply, ExitReply, State}
     end;
 handle_call(Request, _From, State) ->
-    ?WRN("unknown request: ~p", [Request]),
+    ?warning("unknown request: ~p", [Request]),
     {noreply, State}.
 
 handle_cast(Msg, State) ->
-    ?WRN("unknown msg: ~p", [Msg]),
+    ?warning("unknown msg: ~p", [Msg]),
     {noreply, State}.
 
 handle_info({'EXIT',FromPid,Reason}, #{chan := FromPid} = State) ->
-    ?INF("channel exit: ~p, ~p", [FromPid, Reason]),
+    ?info("channel exit: ~p, ~p", [FromPid, Reason]),
     catch amqp_channel:close(FromPid),
     erlang:send_after(3000, self(), {reconnect}),
     State1 = close_channel(State),
@@ -85,11 +85,11 @@ handle_info(stop, State) ->
     {stop, normal, State};
 
 handle_info(Info, State) ->
-    ?WRN("unknown info: ~p", [Info]),
+    ?warning("unknown info: ~p", [Info]),
     {noreply, State}.
 
 terminate(_Reason, State) ->
-%%    ?PRINT("~p", [Channel]),
+%%    ?print("~p", [Channel]),
     close_channel(State),
     ok.
 
@@ -102,7 +102,7 @@ reset_chan(#{} = State) ->
         {ok, Connection1} ->
             case amqp_connection:open_channel(Connection1) of
                 {ok, Channel1} ->
-                    ?INF("reset_chan:~p", [Channel1]),
+                    ?info("reset_chan:~p", [Channel1]),
                     link(Channel1),
 
                     case amqp_channel:call(Channel1, #'confirm.select'{}) of

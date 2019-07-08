@@ -33,11 +33,11 @@ init([]) ->
     {ok, off, 0}.
 
 callback_mode() ->
-    ?PRINT("callback mode"),
+    ?print("callback mode"),
     state_functions.
 
 terminate(Reason, _StateName, State) ->
-    ?PRINT("Reason ~p, State ~p", [Reason, State]),
+    ?print("Reason ~p, State ~p", [Reason, State]),
     ok.
 
 code_change(_OldVsn, StateName, State, _Extra) ->
@@ -48,25 +48,25 @@ code_change(_OldVsn, StateName, State, _Extra) ->
 %%%===================================================================
 
 off({call, From}, push, Data) ->
-    ?PRINT("~p", [Data]),
+    ?print("~p", [Data]),
     {next_state, on, Data + 1, [{reply, From, on}]};
 
 off(EventType, EventContent, Data) ->
-    ?PRINT("~p", [Data]),
+    ?print("~p", [Data]),
     handle_event(EventType, EventContent, Data).
 
 on({call, From}, push, Data) ->
-    ?PRINT("~p", [Data]),
+    ?print("~p", [Data]),
     {next_state, off, Data,[{reply, From, off}]};
 
 on(EventType, EventContent, Data) ->
-    ?PRINT("~p", [Data]),
+    ?print("~p", [Data]),
     handle_event(EventType, EventContent, Data).
 
 handle_event({call, From}, get_count, Data) ->
-    ?PRINT("~p", [Data]),
+    ?print("~p", [Data]),
     {keep_state, Data, [{reply, From, Data}]};
 
 handle_event(_, _, Data) ->
-    ?PRINT("~p", [Data]),
+    ?print("~p", [Data]),
     {keep_state, Data}.

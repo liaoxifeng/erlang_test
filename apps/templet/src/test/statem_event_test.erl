@@ -34,7 +34,7 @@ init([]) ->
     {ok, start, State}.
 
 callback_mode() ->
-    ?PRINT("callback mode"),
+    ?print("callback mode"),
     handle_event_function.
 
 handle_event(cast, player_hdl, StateName, #{counts := Counts} = State) when StateName /= 'end' ->
@@ -49,7 +49,7 @@ handle_event(cast, player_hdl, StateName, #{counts := Counts} = State) when Stat
     end;
 
 handle_event(cast, player_hdl, 'end', State) ->
-    ?PRINT("状态机已结束 State ~p", [State]),
+    ?print("状态机已结束 State ~p", [State]),
     {keep_state_and_data, []};
 
 handle_event({call, From}, _EventContent, _StateName, #{counts := Counts} = State) ->
@@ -75,7 +75,7 @@ handle_event(state_timeout, player_hdl, _StateName, #{counts := Counts} = State)
     end;
 
 handle_event(EventType, EventContent, _StateName, _State) ->
-    ?WRN("not match ~p ~p", [EventType, EventContent]),
+    ?warning("not match ~p ~p", [EventType, EventContent]),
     {keep_state_and_data, []}.
 
 terminate(_Reason, _StateName, _State) ->
@@ -89,4 +89,4 @@ code_change(_OldVsn, StateName, State, _Extra) ->
 %%%===================================================================
 
 player_hdl(Num) ->
-    ?PRINT("player hdl ~p", [Num]).
+    ?print("player hdl ~p", [Num]).

@@ -46,8 +46,8 @@ handle_call(Request, From, State) ->
     try
         do_call(Request, From, State)
     catch
-        Class: Reason ->
-            ?ERR_ST("", [], {Class, Reason}),
+        Class: Reason: Stacktrace ->
+            ?error("[state]~p,~p~n~p", [State, {Class, Reason}, Stacktrace]),
             {noreply, State}
     end.
 
@@ -55,8 +55,8 @@ handle_cast(Msg, State) ->
     try
         do_cast(Msg, State)
     catch
-        Class: Reason ->
-            ?ERR_ST("~nstate=~w", [State], {Class, Reason}),
+        Class: Reason: Stacktrace ->
+            ?error("[state]~p,~p~n~p", [State, {Class, Reason}, Stacktrace]),
             {noreply, State}
     end.
 
@@ -64,8 +64,8 @@ handle_info(Info, State) ->
     try
         do_info(Info, State)
     catch
-        Class: Reason ->
-            ?ERR_ST("~nstate=~w", [State], {Class, Reason}),
+        Class: Reason: Stacktrace ->
+            ?error("[state]~p,~p~n~p", [State, {Class, Reason}, Stacktrace]),
             {noreply, State}
     end.
 
@@ -91,7 +91,7 @@ do_info(Msg, State) ->
             player_hdl:on_ws_terminate(State, Pid);
 
         Unknown ->
-            ?WRN("unknown msg: ~p", [Unknown]),
+            ?warning("unknown msg: ~p", [Unknown]),
             {noreply, State}
     end.
 
@@ -106,7 +106,7 @@ do_call(Request, From, State) ->
             erlang:apply(M, F, [State, From| A]);
 
         Unknown ->
-            ?WRN("unknown request: ~p", [Unknown]),
+            ?warning("unknown request: ~p", [Unknown]),
             {noreply, State}
     end.
 
@@ -125,6 +125,6 @@ do_cast(Msg, State) ->
             erlang:apply(M, F, [State| A]);
 
         Unknown ->
-            ?WRN("unknown msg: ~p", [Unknown]),
+            ?warning("unknown msg: ~p", [Unknown]),
             {noreply, State}
     end.

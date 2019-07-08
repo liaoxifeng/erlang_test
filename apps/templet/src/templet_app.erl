@@ -25,7 +25,7 @@ start(_StartType, _StartArgs) ->
         ]}
     ]),
     {ok, Port} = application:get_env(templet, port),
-    ?INF("cowboy listen [~p]",[Port]),
+    ?info("cowboy listen [~p]",[Port]),
     {ok, _} = cowboy:start_clear(http, [{port, Port}], #{
         env => #{dispatch => Dispatch}
     }),

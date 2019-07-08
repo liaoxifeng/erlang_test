@@ -38,7 +38,7 @@ start_link() ->
 
 start() ->
     {ok, Socket} = gen_tcp:connect("192.168.1.36", 2345, [binary, {packet, 0}]),
-    ?PRINT("Socket ~p", [Socket]),
+    ?print("Socket ~p", [Socket]),
 
     %% 新建一个进程负责接收消息
     Pid = spawn(fun() -> loop() end),
@@ -64,7 +64,7 @@ handle_info(_Info, State) ->
     {noreply, State}.
 
 terminate(Reason, _State) ->
-    ?PRINT("~p", [Reason]),
+    ?print("~p", [Reason]),
     ok.
 
 code_change(_OldVsn, State, _Extra) ->
@@ -78,9 +78,9 @@ loop() ->
     receive
         {tcp, Socket, Bin}->
             gen_tcp:close(Socket),
-            ?PRINT("Client ...~p~n",[Bin]);
+            ?print("Client ...~p~n",[Bin]);
         {tcp_closed, _Socket} ->
-            ?PRINT("client is close")
+            ?print("client is close")
     end.
 
 

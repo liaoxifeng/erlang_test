@@ -71,7 +71,7 @@ select(Binary) ->
                     maps:from_list([{element(I, StructT), element(I, ResultT)} || I <- Lens])
                 end, Results);
         E ->
-            ?ERR("~p", [E]),
+            ?error("~p", [E]),
             E
     end.
 

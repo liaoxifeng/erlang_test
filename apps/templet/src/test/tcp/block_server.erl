@@ -70,20 +70,20 @@ start_parallel_server() ->
 
 %每次绑定一个当前Socket后再分裂一个新的服务端进程，再接收新的请求
 per_connect(Listen) ->
-    ?PRINT("Listen ~p", [Listen]),
+    ?print("Listen ~p", [Listen]),
     {ok, Socket} = gen_tcp:accept(Listen),
     spawn(fun() -> per_connect(Listen) end),
-    ?PRINT("Socket ~p", [Socket]),
+    ?print("Socket ~p", [Socket]),
     loop(Socket).
 
 loop(Socket) ->
     receive
         {tcp, Socket, Bin} ->
-            ?PRINT("Server ~p", [Bin]),
+            ?print("Server ~p", [Bin]),
             gen_tcp:send(Socket, <<"321">>),
 %%            gen_tcp:close(Socket),
             loop(Socket);
         {tcp_closed, Socket} ->
 
-            ?PRINT("Socket is close")
+            ?print("Socket is close")
     end.

@@ -47,7 +47,7 @@ init([Name]) ->
     fs:subscribe(Name),
     {ok, IncludePath} = application:get_env(fs, include_path),
     Include = filename:absname(IncludePath),
-    ?INF("cfg_loader start"),
+    ?info("cfg_loader start"),
     {ok, #{include => Include}}.
 
 handle_call(_Request, _From, State) ->
@@ -67,7 +67,7 @@ handle_info({_Pid, {fs, file_event}, {Path, Flags}}, #{include := Include} = Sta
                     {ok, Module, Binary, _Warnings} =
                         compile:file(Path, [binary, return, {i, [Include]}]),
                     code:load_binary(Module, Path, Binary),
-                    ?INF("reload ~p", [Path]),
+                    ?info("reload ~p", [Path]),
                     ok
             end;
         _ ->

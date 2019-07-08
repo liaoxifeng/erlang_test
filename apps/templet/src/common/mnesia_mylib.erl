@@ -19,7 +19,7 @@
 init() ->
     mnesia:create_schema([node()]),
     mnesia:start(),
-    ?INF("mnesia start"),
+    ?info("mnesia start"),
     %% 不支持版本升级
     mnesia:create_table(mn_id, [
         {attributes, record_info(fields, mn_id)}, {disc_copies, [node()]}]),

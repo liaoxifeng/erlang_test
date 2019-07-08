@@ -45,5 +45,5 @@ dispatch(#'C2S_Login'{} = Msg, State) ->
     {reply, {binary, ReplyBin}, State};
 
 dispatch(Unknown, State) ->
-    ?WRN("Unknown=~p", [Unknown]),
+    ?warning("Unknown=~p", [Unknown]),
     {ok, State}.

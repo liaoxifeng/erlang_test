@@ -41,11 +41,11 @@ handle_cast(_Request, State) ->
     {noreply, State}.
 
 handle_info({mqttc, _Pid, connected}, State) ->
-    ?INF("mqtt publisher connected"),
+    ?info("mqtt publisher connected"),
     {noreply, State};
 
 handle_info(Info, State) ->
-    ?ERR("~p", [Info]),
+    ?error("~p", [Info]),
     {noreply, State}.
 
 terminate(_Reason, _State) ->

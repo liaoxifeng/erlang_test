@@ -45,7 +45,7 @@ websocket_handle({binary, Msg}, _ConnState, State) ->
         #'S2C_Heartbeat'{} ->
             ignore;
         _ ->
-            ?PRINT("用户获得的信息: ~p", [GetMsg])
+            ?print("用户获得的信息: ~p", [GetMsg])
     end,
     {ok, State}.
 
@@ -57,7 +57,7 @@ websocket_info({binary, heart, MsgBin}, _ConnState, State) ->
     {reply, {binary, MsgBin}, State}.
 
 websocket_terminate(Reason, _ConnState, State) ->
-    ?PRINT("Websocket closed in state ~p wih reason ~p", [State, Reason]),
+    ?print("Websocket closed in state ~p wih reason ~p", [State, Reason]),
     ok.
 
 get_reg_name(Id) ->

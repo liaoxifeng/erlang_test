@@ -21,7 +21,7 @@
 
 init(Req, _Opts) ->
     Ip = http:get_real_ip(Req),
-    ?INF("~p connet success", [Ip]),
+    ?info("~p connet success", [Ip]),
     State = #{ip => Ip},
     {cowboy_websocket, Req, State}.
 
@@ -38,7 +38,7 @@ websocket_handle({binary, MsgBin}, State) ->
         #'C2S_Heartbeat'{} ->
             ignore;
         _ ->
-            ?INF("server received: ~p", [Msg])
+            ?info("server received: ~p", [Msg])
     end,
     client_hdl:dispatch(Msg, State);
 
