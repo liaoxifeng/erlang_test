@@ -30,18 +30,18 @@ export MQTT_LOG_LEVEL=info
 # mnesia 存储路径
 export DBPATH=$(printf 'db/Mnesia.%s/' ${NODE_NAME})
 
+# 是否导出 proto_buf
+export EXEC_GPB=true
+
 live(){
     SYS_CONFIG="config/sys.config"
     cp "config/sys.config.src" "$SYS_CONFIG"
     replace_os_vars "config/sys.config.src" "$SYS_CONFIG"
 
-    VM_ARGS="config/vm.args"
-    cp "config/vm.args.src" "$VM_ARGS"
-    replace_os_vars "config/vm.args.src" "$VM_ARGS"
-
-    ERL_FLAGS=" -args_file $VM_ARGS" rebar3 shell \
+    rebar3 shell \
         --config "$SYS_CONFIG" \
-        --name ${NODE_NAME} --setcookie ${SETCOOKIE} \
+        --name ${NODE_NAME} \
+        --setcookie ${SETCOOKIE} \
         --apps sasl,ranch,mysql,cowboy,emqttc,lager,sync,fs,templet,mnesia
 }
 
