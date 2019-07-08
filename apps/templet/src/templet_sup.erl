@@ -40,23 +40,23 @@ start_link() ->
 init([]) ->
     ets:new(?ets_global, [set, named_table, public, {keypos, 1}, {read_concurrency, true}]),
 
-    {ok, {AmqpSizeArgs, _AmqpWorkerArgs}} = application:get_env(templet, rabbitmq_pool),
-    AmqpPoolArgs = [{name, {local, rabbitmq_pool}}, {worker_module, amqp_publisher}] ++ AmqpSizeArgs,
-    AmqpPoolSpecs = poolboy:child_spec(rabbitmq_pool, AmqpPoolArgs, []),
+%%    {ok, {AmqpSizeArgs, _AmqpWorkerArgs}} = application:get_env(templet, rabbitmq_pool),
+%%    AmqpPoolArgs = [{name, {local, rabbitmq_pool}}, {worker_module, amqp_publisher}] ++ AmqpSizeArgs,
+%%    AmqpPoolSpecs = poolboy:child_spec(rabbitmq_pool, AmqpPoolArgs, []),
+%%
+%%    {ok, {MysqlSizeArgs, MysqlWorkerArgs}} = application:get_env(templet, mysql_pool),
+%%    MysqlPoolArgs = [{name, {local, mysql_pool}}, {worker_module, mysql_srv}] ++ MysqlSizeArgs,
+%%    MysqlPoolSpecs = poolboy:child_spec(mysql_pool, MysqlPoolArgs, MysqlWorkerArgs),
 
-    {ok, {MysqlSizeArgs, MysqlWorkerArgs}} = application:get_env(templet, mysql_pool),
-    MysqlPoolArgs = [{name, {local, mysql_pool}}, {worker_module, mysql_srv}] ++ MysqlSizeArgs,
-    MysqlPoolSpecs = poolboy:child_spec(mysql_pool, MysqlPoolArgs, MysqlWorkerArgs),
-
-    {ok, MqttConfig} = application:get_env(templet, emqttc),
+%%    {ok, MqttConfig} = application:get_env(templet, emqttc),
     {ok, { {one_for_all, 10, 10},
         [
             ?CHILD(templet_init, worker),
-            ?CHILD(mqtt_publisher, worker, MqttConfig),
-            ?CHILD(mqtt_srv, worker, MqttConfig),
-            ?CHILD(mysql_dispatcher, worker, MqttConfig),
+%%            ?CHILD(mqtt_publisher, worker, MqttConfig),
+%%            ?CHILD(mqtt_srv, worker, MqttConfig),
+%%            ?CHILD(mysql_dispatcher, worker, MqttConfig),
 %%            AmqpPoolSpecs,
-            MysqlPoolSpecs,
+%%            MysqlPoolSpecs,
             %% for test
             ?CHILD(test_mgr, worker)
 

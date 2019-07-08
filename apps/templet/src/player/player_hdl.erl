@@ -11,7 +11,7 @@
 
 -include("common.hrl").
 -include("player.hrl").
--include("pt_common.hrl").
+-include("all_pb.hrl").
 -include("proto_bo.hrl").
 
 -author("feng.liao").
@@ -38,9 +38,9 @@ register(#'C2S_Register'{use_name = UserName, password = Password, phone_number 
     ],
     case mqtt_hdl:call(CmdContent) of
         {ok, #{<<"code">> := 0}} ->
-            pt:encode_msg(pt_common, #'S2C_Register'{code = 0});
+            pt:encode_msg(#'S2C_Register'{code = 0});
         _ ->
-            pt:encode_msg(pt_common, #'S2C_Register'{code = 1})
+            pt:encode_msg(#'S2C_Register'{code = 1})
     end.
 
 login(#'C2S_Login'{use_name = UserName, password = Password}) ->

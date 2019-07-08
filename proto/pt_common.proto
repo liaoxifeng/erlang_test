@@ -1,4 +1,4 @@
-import "pt_err.proto";
+
 // 人物
 message Person {
     required string name = 1;
@@ -53,6 +53,5 @@ enum EnumS2CErrShowType {
 // 服务端返回提示信息
 message S2C_Err {
     required EnumS2CErrCode code = 1;       // 错误码
-    required EnumS2CErrShowType type = 2;   // 提示方式
     required string msg = 3;                // 消息
 }

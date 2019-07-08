@@ -10,7 +10,7 @@
 -author("feng.liao").
 
 -include("common.hrl").
--include("pt_common.hrl").
+-include("all_pb.hrl").
 
 -behaviour(gen_server).
 
@@ -59,11 +59,11 @@ code_change(_OldVsn, State, _Extra) ->
 start(Id) ->
     {ok, Pid} = robot:start_link(Id),
     Register = #'C2S_Register'{use_name = <<"feng1">>, password = <<"234567">>, phone_number = <<"15172407849">>},
-    Pid ! {binary, pt:encode_msg(pt_common, Register)}.
+    Pid ! {binary, pt:encode_msg(Register)}.
 
 %%
 send(Id) ->
     {ok, Pid} = robot:start_link(Id),
     Msg = #'C2S_Login'{use_name = <<"feng">>, password = <<"passord">>},
-    Pid ! {binary, pt:encode_msg(pt_common, Msg)}.
+    Pid ! {binary, pt:encode_msg(Msg)}.
 

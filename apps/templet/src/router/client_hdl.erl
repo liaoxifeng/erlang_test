@@ -10,7 +10,7 @@
 -module(client_hdl).
 
 -include("common.hrl").
--include("pt_common.hrl").
+-include("all_pb.hrl").
 
 -author("feng.liao").
 
@@ -19,7 +19,7 @@
 
 %% 心跳
 dispatch(#'C2S_Heartbeat'{}, State) ->
-    ReplyBin = pt:encode_msg(pt_common, #'S2C_Heartbeat'{}),
+    ReplyBin = pt:encode_msg(#'S2C_Heartbeat'{}),
     {reply, {binary, ReplyBin}, State};
 
 %% 注册
@@ -34,7 +34,7 @@ dispatch(#'C2S_Login'{} = Msg, State) ->
             {UserId, UserName, Money} ->
                 case supervisor:start_child(player_sup, [{UserId, UserName, Money, self()}]) of
                     {ok, Pid} when is_pid(Pid) ->
-                        pt:encode_msg(pt_common, #'S2C_Login'{use_name = UserName, money = Money});
+                        pt:encode_msg(#'S2C_Login'{use_name = UserName, money = Money});
                     _ ->
                         pt:encode_err('E_S2CErrCode_Sys')
                 end;

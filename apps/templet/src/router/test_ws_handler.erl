@@ -10,7 +10,7 @@
 -module(test_ws_handler).
 
 -include("common.hrl").
--include("pt_common.hrl").
+-include("all_pb.hrl").
 
 -author("feng.liao").
 

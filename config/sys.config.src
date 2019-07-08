@@ -44,6 +44,13 @@
             ]}
     ]},
 
+    {mnesia, [
+            {dir, "${DBPATH}"},
+            {dump_log_write_threshold, 50000},
+            {dump_log_time_threshold, 300000},
+            {dc_dump_limit, 100}
+        ]},
+
     {sync, [
         {src_dirs, {replace, [{"./src/cfg", [{outdir,"./ebin"}]}]}}
     ]},
